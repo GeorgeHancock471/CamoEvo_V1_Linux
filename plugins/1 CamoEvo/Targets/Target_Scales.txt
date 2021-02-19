@@ -1,0 +1,12 @@
+Target_Circle	200
+Target_Oval	300
+Target_Triangle	300
+Target_Tear	300
+Target_Egg	290
+Target_Moth	450
+Target_Cricket	400
+Target_Newt	550
+Target_Toad	450
+Target_Reptile	700
+Target_Crab	450
+Target_Custom	350

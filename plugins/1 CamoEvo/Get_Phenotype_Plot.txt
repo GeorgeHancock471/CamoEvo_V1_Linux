@@ -1,0 +1,291 @@
+
+csv = ".csv";
+tif = ".tif";
+txt = ".txt";
+png = ".png";
+
+close("*");
+
+//GET FILE DIRECTORY
+//------------------------------------------------------
+/*
+Dialog.create("Choose Directory");
+		Dialog.addMessage("________________Choose Folder___________________");
+		Dialog.addMessage("Select directory with the fitness values of interest");
+Dialog.show();
+
+*/
+
+
+popLocalDir =  getDirectory("plugins") + "1 CamoEvo/Population/";
+popFiles = getFileList(popLocalDir);
+
+for(i=0; i< popFiles.length; i++){
+popFiles[i] = replace(popFiles[i], "/", "");
+}
+
+
+Dialog.create("Populations");
+Dialog.addChoice("Choose a Population", popFiles)
+Dialog.show();
+
+
+
+
+survivalDIR = popLocalDir + Dialog.getChoice() +"/";
+configFilePath=survivalDIR;
+tempString = "select=["+ configFilePath+"]";
+
+survivalList  =  getFileList(survivalDIR);
+
+Leng = lengthOf(survivalList);
+
+
+//GET DEFAULTS
+//------------------------------------------------------
+
+
+settingsFilePath = getDirectory("plugins") + "2 CamoReq/plotSettings.txt";
+if(File.exists(settingsFilePath) == 1){
+	settingsString=File.openAsString(settingsFilePath);	// open txt data file
+	defaultSettings=split(settingsString, "\n");
+} else  defaultSettings = newArray(
+
+"2",	// X interval
+"1/2",	// Y Ratio
+"1",	// Block Size
+"10",	// Column Spacing
+"10" );  // Row Spacing
+
+if(defaultSettings.length != 5){
+
+defaultSettings = newArray(
+
+"2",	// X interval
+"1/2",	// Y Ratio
+"1",	// Block Size
+"10",	// Column Spacing
+"10" );  // Row Spacing
+}
+
+
+for(i=0; i<Leng; i++) { 
+	if(endsWith(survivalList[i], "_survival.txt")!=1 && startsWith(survivalList[i], "generation")==1 ){
+
+		survivalArray = Array.concat(survivalArray, survivalList[i]);
+	}}
+
+
+//GET USER CHOICE
+//------------------------------------------------------
+
+RatioArray = newArray ("All", "3/4", "2/3", "1/2", "1/3", "1/4", "1");
+Dialog.create("Choose Directory");
+		Dialog.addMessage("________________Choose Intervals___________________");
+		Dialog.addMessage("Select the Axis interval and proportion");
+		
+		Dialog.addNumber("x interval" , defaultSettings[0]);
+		Dialog.addChoice("y proportion", RatioArray,  defaultSettings[1]); 
+		Dialog.addNumber("Block Size, Columns per Block",  defaultSettings[2]); 
+		Dialog.addNumber("Column Spacing",  defaultSettings[3], 0, 4, "px");
+		Dialog.addNumber("Row Spacing",  defaultSettings[4], 0, 4, "px");
+		Dialog.addNumber("Start", 0);
+		Dialog.addNumber("End",  survivalArray.length-2);
+Dialog.show();
+
+
+wScale = Dialog.getNumber();
+hScale = Dialog.getChoice();
+blockSize = Dialog.getNumber();
+colSpace = Dialog.getNumber();
+rowSpace = Dialog.getNumber();
+startPoint  = Dialog.getNumber();
+endPoint  = Dialog.getNumber();
+
+
+
+//SAVE USER CHOICE
+//------------------------------------------------------
+dataFile = File.open(settingsFilePath);
+
+	print(dataFile, wScale);
+	print(dataFile, hScale);
+	print(dataFile, blockSize);
+	print(dataFile, colSpace);
+	print(dataFile, rowSpace);
+	
+File.close(dataFile);
+
+if(hScale == "1"){
+hScale = 1/(survivalArray.length);
+}
+
+if(hScale == "All"){
+hScale = 1;
+}
+if(hScale == "3/4"){
+hScale = (3/4);
+}
+if(hScale == "2/3"){
+hScale = (2/3);
+}
+if(hScale == "1/2"){
+hScale = (1/2);
+}
+if(hScale == "1/3"){
+hScale = (1/3);
+}
+if(hScale == "1/4"){
+hScale = (1/4);
+}
+
+
+
+//GET FIGURE WIDTH
+//------------------------------------------------------
+
+
+
+interval = wScale;
+
+loopLeng =(endPoint)/interval;
+
+colWidth = (400+colSpace);
+
+print(loopLeng);
+
+figWidth = ( ((colWidth) *  (floor(loopLeng)-startPoint) * blockSize ) ) - ( (colSpace*(blockSize-1)) * (floor(loopLeng)-startPoint) );
+
+
+//GET FIGURE HEIGHT
+//------------------------------------------------------
+GenNum = survivalDIR + "generation_" +  0 + txt;
+referenceString=File.openAsString(GenNum);	// open txt data file
+referenceRows=split(referenceString, "\n");
+
+targetLeng = ((referenceRows.length-1)* hScale)+1;
+
+colHeight = 500 + rowSpace;
+
+figHeight = ((colHeight * (targetLeng-1))/blockSize )+ rowSpace;
+
+
+
+
+//GET FIGURE BLANK
+//------------------------------------------------------
+
+newImage("Phenotypes", "RGB black", figWidth, figHeight, 1);
+
+setBatchMode(true);
+
+
+
+//Loop add Phenotypes
+//------------------------------------------------------
+
+
+numGate = 0;
+blockMultiplier = -1;
+
+
+for (i=0; i<((loopLeng)*blockSize) - (startPoint*blockSize); i++){
+
+num = floor((i)/blockSize);
+
+Number = num*interval + (startPoint);
+
+GenNum = survivalDIR + "generation_" + (Number) +"_survival"  + txt;
+
+GenName = "generation_" + (Number);
+
+PhenotypePath =  survivalDIR+"GenPat_"+ (Number) +"/";
+
+
+
+				referenceString=File.openAsString(GenNum);	// open txt data file
+				referenceRows=split(referenceString, "\n");
+
+				IDarray =newArray();
+				FitnessArray =newArray();
+
+				for(j=1;j<referenceRows.length;j++){
+				tempArray = split(referenceRows[j], "\t");
+				IDarray=Array.concat(IDarray, tempArray [0]);
+				FitnessArray=Array.concat(FitnessArray, parseFloat( tempArray [1] ));
+				}
+
+
+
+				FitnessRanked = Array.rankPositions(FitnessArray);
+
+				index=Array.getSequence(FitnessRanked.length);
+
+				IDRankedarray = newArray();
+
+				IDSort=Array.copy(IDarray);
+
+				for(j=0;j<FitnessRanked.length;j++){
+
+				str = FitnessRanked[FitnessRanked.length-1-j];
+				IDRankedarray = Array.concat(IDRankedarray,IDarray[str]);
+
+				}
+
+
+targetX = i*400 + (num*colSpace);
+xText = (targetX+(200));
+
+if(blockSize!=1){
+if(numGate == num){
+blockMultiplier = blockMultiplier + 1;
+numGate = num;
+} 
+
+
+if(numGate != num){
+blockMultiplier =  0;
+numGate = num;
+} 
+
+
+blockAdd = parseInt(((targetLeng / blockSize)-1)*blockMultiplier);
+} else {
+
+blockMultiplier =  0;
+blockAdd=0;
+}
+
+
+
+for(j=0; j< (targetLeng / blockSize)-1; j++){
+
+rankName = blockMultiplier+(j*blockSize);
+
+IDnam = IDRankedarray[rankName];
+
+
+open(PhenotypePath+IDnam+tif);
+selectImage("Phenotypes");
+
+targetImage = IDnam+tif;
+targetY = parseFloat(j)*colHeight;
+
+run("Add Image...", "image=targetImage x=targetX y=targetY opacity=100");
+
+close(targetImage);
+
+
+setJustification("center");
+setColor("white");
+setFont("SansSerif",36);
+drawString(IDnam, xText, ( parseFloat(j)*colHeight)+colHeight);
+
+
+}
+
+
+}
+
+setTool("hand");
+

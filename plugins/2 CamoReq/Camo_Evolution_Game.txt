@@ -1,0 +1,3637 @@
+// TestPoint
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+function TestPoint(Title) {
+Dialog.createNonBlocking("TestPoint");
+Dialog.createNonBlocking("Did " + Title + " work?");
+Dialog.show();
+
+}
+
+
+startTimeTest = getTime();
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+setBatchMode(true);
+
+if (isOpen("ROI Manager")) {
+selectWindow("ROI Manager");
+run("Close");
+}
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 0) Get Scale Settings
+//----------------------------------------------------------------------------------------------------------------
+
+
+selectImage("Loading");
+run("Maximize");
+getLocationAndSize(x, y, width, height);
+
+xScale=x; // Get Game Scale
+yScale=y;
+wScale=width;
+hScale=height;
+
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+loadX=x;
+loadY=y;
+loadW=width;
+loadH=height;
+
+run("Select None");
+
+
+GameDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Game/";
+
+selectImage("Loading");
+
+
+
+PopLocal = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
+PopLocation = File.openAsString(PopLocal);
+PopLocation=split(PopLocation, "\n");
+PopLocation = PopLocation[0];
+PopLocation = getDirectory("plugins")+PopLocation;
+
+if(!File.exists(GameDirectory+"01_Play.jpg")){
+exit("Game Screen Img, missing, reinstall suggested");
+}
+
+open(GameDirectory+"01_Play.jpg");
+
+
+
+open(GameDirectory+"02_Black.jpg");
+
+
+if(!File.exists(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png")){
+setBatchMode(false);
+close("*");
+exit("Circle Img, missing, reinstall suggested");
+}
+
+
+open(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png");
+open(getDirectory("plugins") + "1 CamoEvo/Interface/redCircle.png");
+
+
+
+PopulationSet = PopLocation+"Population Settings.txt";
+PopulationSettings = File.openAsString(PopulationSet );
+PopulationSettings = split(PopulationSettings, "\n");
+
+TargetSet = split(PopulationSettings[0],"\t");
+TargetSetting = TargetSet[1];
+
+PopSize = split(PopulationSettings[2],"\t");
+PopSize = PopSize [1];
+
+
+TimeOutTime = split(PopulationSettings[4],"\t");
+TimeOutTime = parseFloat(TimeOutTime [1]);
+
+
+numPerSlide = split(PopulationSettings[3],"\t");
+numPerSlide = parseFloat(numPerSlide [1]);
+
+
+
+
+
+//print("");
+//print("");
+//print("Check Generation");
+startTimeTest = getTime();
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 1) Make Sure there is Generation 0
+//----------------------------------------------------------------------------------------------------------------
+
+
+if(!File.exists(PopLocation+"generation_0.txt")){
+
+run("Camo Evo ImageGA Interface");
+
+}
+
+checkZ=1;
+
+runCount=-1;
+
+while(checkZ==1){
+
+
+
+CheckDirectory = PopLocation;
+
+checkA = 1;
+checkB1 = getFileList(CheckDirectory);
+checkB1 = checkB1.length;
+
+checkB2 = getFileList(CheckDirectory);
+checkB2 = checkB2.length;
+
+while(checkA==1){
+
+
+
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+//print("");
+//print("");
+//print("Generate Patterns");
+startTimeTest = getTime();
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+//----------------------------------------------------------------------------------------------------------------
+// 2) Generate Patterns
+//----------------------------------------------------------------------------------------------------------------
+
+
+//--------------------------------------------
+//Get Current Generation
+//===============================
+
+
+CheckDirectory = PopLocation;
+
+GeneratArray = newArray();
+
+GeneratList  =  getFileList(CheckDirectory);
+
+
+for(i=0; i<GeneratList.length; i++) { // list all .txt files
+
+	if(endsWith(GeneratList[i], "_survival.txt")==1)
+
+		GeneratArray = Array.concat(GeneratArray, GeneratList[i]);
+}
+
+
+
+ArrayLeng = lengthOf(GeneratArray);
+
+csv = ".csv";
+tif = ".tif";
+txt = ".txt";
+png = ".png";
+
+GenNumber = ArrayLeng;
+GenNum = CheckDirectory + "generation_" + GenNumber + txt;
+GenName = "generation_" + GenNumber + txt;
+SurvGenNum= CheckDirectory + "generation_" + GenNumber +"_survival" + txt;
+
+runCount=runCount+1;
+if(runCount==0){
+
+if(isOpen("Evolving")){
+
+selectImage("Evolving");
+for(i=0;i<4;i++){
+setSlice(i+1);
+
+ setFont("Caldibri ", 52, "bold");
+ setColor( "#16150D");
+
+ stringB= "                                         ";
+
+drawString(stringB, 740, 552, "#16150D");
+
+
+
+ setColor(255,255, 255);
+
+
+
+setJustification("center");
+
+ stringT= " Evolving Generation "+GenNumber+" ... ";
+
+ drawString(stringT, 740, 552, "#16150D");
+
+
+
+}
+
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+run("Maximize");
+ run("Animation Options...", "speed="+6);
+
+doCommand("Start Animation");
+}
+}
+
+
+
+
+if(isOpen("Loading")){
+selectImage("Loading");
+setBatchMode("hide");
+}
+
+
+
+
+
+if(File.exists(GenNum)){
+GenerationString=File.openAsString(GenNum);	// open txt data file
+GenerationRows=split(GenerationString, "\n");
+
+PatternTemplate = getDirectory("plugins") + "2 CamoReq/PatternTemplate.txt";
+
+
+
+//--------------------------------------------
+//Sort Out Existing Patterns
+//===============================
+
+//------------------------------------------------
+// Make Pattern Directory
+//-------------------------------------------------
+fold = "GenPat_" + GenNumber;
+foldOld = "GenPat_" + GenNumber-1;
+PatternPath = CheckDirectory + fold;
+PriorPath = CheckDirectory + foldOld;
+
+
+//IF there is already patterns for that Generation,don't remake them.
+// If the file already exists and its size == the desired pop size then don't make pattersn.
+CheckLength = getFileList(PatternPath);
+
+
+
+
+if(CheckLength.length<PopSize || !File.exists(PatternPath)) {
+
+
+File.makeDirectory(PatternPath );
+
+
+setBatchMode(true);
+
+if(GenNumber>0){ // if it is generation 1 or higher it will check which individuals have survived without mutating, and save them without remaking them. 
+				// this preserves the exact same phenotype.
+				
+				
+notMade=newArray();
+
+for(i=1; i<GenerationRows.length; i++){
+Temp = split(GenerationRows[i], "\t");
+Temp = Temp[0];
+patternGet = PriorPath + "/" + Temp + tif;
+
+
+if(File.exists(patternGet) == 1){
+	while(!isOpen(Temp + tif)){
+	open(patternGet);
+}
+
+selectImage(Temp + tif);
+
+title = getTitle();
+newName = replace (title, ".tif", "");
+rename(newName);
+
+
+} else {
+	str=GenerationRows[i];
+	notMade=Array.concat(notMade,str);
+}
+
+
+
+}
+
+
+dataFile = File.open(PatternTemplate);  // writes the pattern genome to a temporary text file, which the target generator then uses.
+
+	print(dataFile, GenerationRows[0]);
+	
+	for(i=0; i<notMade.length; i++){
+	print(dataFile, notMade[i]);
+	
+	}
+	File.close(dataFile);
+
+}
+
+
+if(GenNumber==0){ // if it is generation 0 it will need to generate all the patterns no matter what.
+
+	dataFile = File.open(PatternTemplate);
+	
+	for(i=0; i<GenerationRows.length; i++){	// writes the pattern genome to a temporary text file, which the target generator then uses.
+	
+	print(dataFile, GenerationRows[i]);
+	
+	}
+	File.close(dataFile);
+}
+
+
+//--------------------------------------------
+//Generate Patterns
+//========================
+if(TargetSetting=="Target_Egg"){
+run("Generate Eggs");
+}else{
+run("Generate Targets");
+}
+
+
+WinNam = getList("image.titles");
+Win = lengthOf(WinNam);
+
+
+
+for ( i=0; i<Win; i++ ) { 
+
+pat = "/" + WinNam[i] + tif;
+PatternPath = CheckDirectory + fold + pat;
+selectWindow(WinNam[i]);
+
+if(endsWith(WinNam[i], ".tif")){
+
+close(WinNam[i]);
+} else {
+
+if(startsWith(WinNam[i], "Gen")==1 || startsWith(WinNam[i], "gloss")==1){
+
+saveAs("Tiff", PatternPath); 
+
+close(WinNam[i]+".tif");
+
+}
+}
+}
+
+
+
+} else {
+
+
+
+}
+
+
+PatternCombinedPath = CheckDirectory + "Combined_"+fold+"/";
+
+
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+//print("");
+//print("");
+//print("Load Backgrounds");
+startTimeTest = getTime();
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 3) LoadBackgrounds
+//----------------------------------------------------------------------------------------------------------------
+
+//----------------------------------------------
+//Generate Random Background and Pattern Orders
+//==============================================
+
+
+BackgroundsDirectory = PopLocation+"Backgrounds/";
+BackgroundList  =  getFileList(BackgroundsDirectory);
+
+PatternPath = CheckDirectory + fold;
+PatternList = getFileList(PatternPath);
+
+// Targets
+
+randOrder=newArray(PatternList.length);
+
+
+for(i=0; i<PatternList.length;i++){
+randOrder[i] = random();
+}
+
+randOrder = Array.rankPositions(randOrder);
+
+randomTargets =newArray();
+
+
+for(i=0; i<PatternList.length; i++){
+str=randOrder[i];
+randomTargets  = Array.concat(randomTargets , PatternList[str]);
+}
+
+
+
+
+
+// Backgrounds
+
+
+
+if(PatternList.length > BackgroundList.length){
+extendLoop = PatternList.length / BackgroundList.length;
+} else {
+extendLoop =1; 
+}
+
+randOrder=newArray();
+
+for(j=0; j<extendLoop; j++){
+randArray=newArray(BackgroundList.length);
+
+for(i=0; i<BackgroundList.length;i++){
+randArray[i] = random();
+}
+
+randArray = Array.rankPositions(randArray);
+
+
+randOrder = Array.concat(randOrder,randArray );
+
+}
+
+
+randomBackgrounds =newArray();
+
+
+for(i=0; i<PatternList.length / numPerSlide; i++){
+
+num=i;
+
+str=randOrder[num];
+
+for(j=0; j< numPerSlide; j++){
+
+randomBackgrounds = Array.concat(randomBackgrounds, BackgroundList[str]);
+
+}
+
+}
+
+
+
+
+//setBatchMode("exit and display");
+//--------------------------------------------
+//Get Scalings Using First
+//========================
+
+
+
+open(BackgroundsDirectory + randomBackgrounds[0]);
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+if(height>width){
+imageScale = width/loadW;
+}
+
+if(width>height){
+imageScale = height/loadH;
+}
+
+
+cropW=loadW*imageScale ;
+cropH=loadH*imageScale;
+cropX=0;
+cropY=0;
+if(height>cropH){
+cropY=(height-cropH)/2;
+}
+
+
+
+makeRectangle(cropX, cropY, cropW, cropH);
+run("Crop");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+loadX=x;
+loadY=y;
+loadW=width;
+loadH=height;
+
+
+rename("slide0");
+
+
+run("Select All");
+run("Copy");
+setPasteMode("Copy");
+
+
+newImage("GameSlides", "RGB black",  cropW, cropH, ((randomBackgrounds.length) / (numPerSlide))+1);
+
+
+setSlice(2);
+
+run("Paste");
+
+close("slide0");
+
+
+
+
+
+//--------------------------------------------
+//Set all of them to slides
+//==============================
+
+
+
+for(i=1;i<randomBackgrounds.length / (numPerSlide) ;i++){
+
+open(BackgroundsDirectory + randomBackgrounds[i]);
+
+selectImage(randomBackgrounds[i]);
+makeRectangle(cropX, cropY, cropW, cropH);
+
+run("Copy");
+setPasteMode("Copy");
+close(randomBackgrounds[i]);
+
+selectImage("GameSlides");
+setSlice(2+(i));
+run("Paste");
+
+
+}
+
+
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+//print("");
+//print("");
+//print("Add Targets");
+startTimeTest = getTime();
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 4) Add Targets
+//----------------------------------------------------------------------------------------------------------------
+
+
+
+
+//--------------------------------------------
+//If slides are already there.
+//==============================
+
+File.makeDirectory(PatternCombinedPath);
+
+PopulationSet = PopLocation+"Population Settings.txt";
+PopulationSettings = File.openAsString(PopulationSet );
+PopulationSettings = split(PopulationSettings, "\n");
+
+
+TargetSet = split(PopulationSettings[0],"\t");
+TargetSetting = TargetSet[1];
+
+
+TargetChoice = TargetSetting;
+
+TargetDirectory = getDirectory("plugins")+ "1 CamoEvo/Targets/";
+
+TargetScales = File.openAsString(TargetDirectory+"Target_Scales.txt");
+TargetScalesRows = split(TargetScales, "\n");
+
+for(i=0; i<TargetScalesRows.length; i++){
+temp = split(TargetScalesRows[i], "\t");
+
+if(startsWith(temp[0], TargetChoice)){
+TargetChoiceScale= parseFloat(temp[1]);
+}
+
+}
+
+
+
+selectImage("GameSlides");
+run("Select All");
+Roi.getBounds(x, y, width, height);
+run("Select None");
+
+bgWidth= width;
+bgHeight= height;
+
+screenScale = width/2600;
+targetScale=TargetChoiceScale*screenScale;
+
+//--------------------------------------------
+//Add Target Point
+//=================================================
+
+//setBatchMode("show");
+
+
+
+setSlice(1);
+setColor("White");
+setLineWidth(5);
+
+setFont("Caldibri ", 72, "bold");
+ setColor( "White");
+ stringI= "Place your your cursor inside the circle";
+drawString(stringI, bgWidth/2, (bgHeight/2)-350);
+
+setFont("Caldibri ", 62, "bold");
+ stringI= "(Don't move your cursor until you spot the target)";
+drawString(stringI, bgWidth/2, (bgHeight/2)-210);
+
+
+
+ovalW=50;
+ovalH=50;
+ovalX= (bgWidth/2)-(ovalW/2);
+ovalY= (bgHeight/2)-(ovalH/2);
+ovalCX = (bgWidth/2);
+ovalCY = (bgHeight/2);
+
+drawOval(ovalX,ovalY,ovalW,ovalH);
+
+
+
+
+
+
+
+getCursorLoc(x, y, z, modifiers);
+
+
+
+
+
+//--------------------------------------------
+//Apply targets at the right scale and coordinates
+//=================================================
+
+//setBatchMode("exit and display");
+
+
+targetXcoords = newArray();
+targetYcoords = newArray();
+targetFlip = newArray();
+targetAngle = newArray();
+
+
+luminanceDifference = newArray();
+patternDifference = newArray();
+colourDifference = newArray();
+GabRatArray = newArray();
+
+//File.makeDirectory(CheckDirectory+"Recordings/");
+
+
+for(i=0; i<(PopSize); i++){
+
+TargetPath = CheckDirectory + fold + "/" + randomTargets[i];
+
+open(TargetPath);
+rename("Target");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+targetReScale = targetScale/650;
+widthReScale = height*targetReScale;
+
+ts = "x=- y=- height=" + widthReScale + " width= "+ widthReScale + "  interpolation=None";
+ts2 = "width="+ widthReScale + " height=" + widthReScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+//----------------------------------------------------------------
+//Modify Rotation and Flip for Triangle to mimic moth orientation
+//==================================================================
+			if(TargetChoice=="Target_Triangle" || TargetChoice=="Target_Moth"){
+
+			directionArray =newArray(1,-1);
+			rotationDir = directionArray[parseInt(random())];
+
+			if(TargetChoice=="Target_Triangle"){
+			mod = 0;
+				flip=parseInt(random());
+			if(flip==0){
+			flip="none";
+			}
+			if(flip==1){
+			flip="Horiz";
+			run("Flip Horizontally");
+			}
+
+			}
+			if(TargetChoice=="Target_Moth"){
+			mod = -90;
+				flip=parseInt(random());
+			if(flip==0){
+			flip="none";
+			}
+			if(flip==1){
+			flip="Horiz";
+			run("Flip Vertically");
+			}
+
+			}
+
+			rotation = mod +  (75*random()*rotationDir );
+
+
+		
+
+
+//----------------------------------------------------------------
+//Typical Rotation and Flip
+//==================================================================
+} else {
+
+
+rotation = 360*random();
+
+
+flip=parseInt(random());
+if(flip==0){
+flip="none";
+}
+if(flip==1){
+flip="horizontal";
+run("Flip Horizontally");
+}
+
+}
+
+
+
+
+targetAngle=Array.concat(targetAngle,rotation);
+
+targetFlip=Array.concat(targetFlip,flip);
+
+run("Rotate... ", "angle=[&rotation] grid=1 interpolation=None");
+
+
+dirArray=newArray(-1,1);
+dirX=dirArray[	parseInt(	random()	) ];
+dirY=dirArray[		parseInt(	random()	) ];
+
+//----------------------------------------------------------------
+//Set X and Y Coordinates the apply
+//==================================================================
+
+coordArrayCheck1 = i/numPerSlide;
+coordArrayCheck2 = floor(i/numPerSlide);
+
+if(coordArrayCheck1==coordArrayCheck2){
+
+priorX = newArray();
+priorY = newArray();
+
+saveCheck = 0;
+
+nameNumber =-1;
+
+while(roiManager("count")>0){
+roiManager("select",0);
+roiManager("delete");
+
+}
+
+}
+
+nameNumber = nameNumber + 1;
+
+roiManager("Show None");
+selectImage("Target");
+		run("Select All");
+		run("Duplicate...", "title=mask");
+		run("8-bit");
+		setThreshold(1, 255);
+		
+		run("Create Selection");
+		roiManager("Add");
+		roiManager("select", roiManager("count")-1);
+		rename("copy");
+		
+		run("Select All");
+		roiManager("Add")
+		roiManager("select", roiManager("count")-1);
+		rename("copySquare");
+		
+		roiManager("deselect");
+		
+		close("copySquare");
+
+
+
+	loopRandomGate = 0;
+
+	while(loopRandomGate == 0){
+
+	loopRandomGate = 1;
+
+	Xcoord=(bgWidth/2)-(widthReScale/2); 
+	Ycoord=(bgHeight/2)-(widthReScale/2);
+
+	Xmod= ( ( (bgWidth/2)-(widthReScale*2) ) * random() );
+	Ymod= ( ( (bgHeight/2)-(widthReScale*2) ) * random() );
+
+	
+		Xcoord=Xcoord+(Xmod*dirX)+((widthReScale/2)*dirX);
+		Ycoord=Ycoord+(Ymod*dirY)+((widthReScale/2)*dirY);
+
+		
+		for(l =0; l<2; l++){
+		for(Z = 0; Z<priorX.length; Z++){
+		
+		DisX = Math.sqrt( Math.sqr( Xcoord - priorX[Z]));
+		DisY = Math.sqrt( Math.sqr( Ycoord - priorY[Z]));
+		
+		DisX2 =  Xcoord - priorX[Z];
+		DisY2 =  Ycoord - priorY[Z];
+		
+		
+
+		if(DisX<(widthReScale*1.2)){
+		
+		if(DisX2<0){
+		Xcoord = Xcoord  - ((widthReScale) + (random()*widthReScale));
+		}
+		
+		if(DisX2>0){
+		Xcoord = Xcoord  + ((widthReScale) + (random()*widthReScale));
+		}
+		
+		}
+
+		if(DisY<(widthReScale*1.2)){
+		
+		if(DisY2<0){
+		Ycoord = Ycoord  - ((widthReScale) + (random()*widthReScale));
+		}
+		
+		if(DisY2>0){
+		Ycoord = Ycoord + ((widthReScale) + (random()*widthReScale));
+		}
+		
+		}
+		
+		
+
+		
+	}
+	}
+	
+		if(Xcoord < 0 || (Xcoord+widthReScale) > bgWidth || (Ycoord+widthReScale) > bgHeight || Ycoord < 0){
+		
+		loopRandomGate = 0;
+
+		}
+	}
+	
+priorX =Array.concat(priorX, Xcoord);
+priorY =Array.concat(priorY, Ycoord);
+
+
+
+if( (2+(floor(i/numPerSlide))) <= ( ( parseFloat(PopSize) ) / numPerSlide) +1 ){
+
+
+
+// ADD the Target to the Slice
+//run("Add Image...", "image=Target x=Xcoord y=Ycoord opacity=100 zero");
+
+
+selectImage("Target");
+		
+		roiManager("Select", roiManager("Count")-1);
+		run("Copy");
+		roiManager("deselect");
+
+selectImage("GameSlides");
+setSlice(2+(floor(i/numPerSlide)));
+
+		roiManager("Select", roiManager("Count")-1);
+		Roi.getBounds(x, y, width, height);
+		oldX=x;
+		oldY=y;
+		oldWidth=width;
+		oldHeight = height;
+		
+		
+		Roi.move(Xcoord, Ycoord);
+		roiManager("update");
+		
+
+		setPasteMode("Transparent-zero");
+		run("Paste");
+		
+		//waitForUser("");
+
+		roiManager("Select", roiManager("Count")-2);
+		
+		Roi.getBounds(x, y, width, height);
+		targetROIx = Xcoord +(x-oldX);
+		targetROIy = Ycoord +(y-oldY);
+		//print(oldWidth-width);
+		//print(oldHeight-height);
+
+		Roi.move(targetROIx, targetROIy);
+		roiManager("Add");
+		
+		
+		
+		roiManager("select", roiManager("Count")-3);
+		roiManager("delete");
+		
+
+targetXcoords=Array.concat(targetXcoords,Xcoord);
+targetYcoords=Array.concat(targetYcoords,Ycoord);
+
+
+//ADD ROIS
+//---------------------------------------------
+
+roiManager("Select", roiManager("Count")-1);
+roiManager("rename", "prey_"+nameNumber);
+roiManager("deselect");
+
+roiManager("Select", roiManager("Count")-2);
+
+run("Fit Circle");
+run("Scale... ", "x=2 y=2 centered");
+roiManager("Add");
+
+roiManager("Select", roiManager("Count")-3);
+roiManager("delete");
+
+
+roiManager("Select", newArray(roiManager("Count")-1, roiManager("Count")-2 ) );
+roiManager("XOR");
+roiManager("Add");
+
+
+
+run("Select All");
+roiManager("Add");
+
+roiManager("Select", newArray(roiManager("Count")-1, roiManager("Count")-2 ) );
+roiManager("AND");
+roiManager("Add");
+roiManager("Select", roiManager("Count")-1);
+roiManager("rename", "local_"+nameNumber);
+
+roiManager("Select", newArray(roiManager("Count")-2,roiManager("Count")-3, roiManager("Count")-4) );
+roiManager("delete");
+
+//---------------------------------------------
+
+setSlice(2+(floor(i/numPerSlide)));
+run("Select All");
+
+saveCheck=saveCheck+1;
+
+if(saveCheck==numPerSlide){
+
+run("Duplicate...", "title=Save");
+
+selectImage("Save");
+
+run("From ROI Manager");
+saveAs("Tiff", PatternCombinedPath + floor(i/numPerSlide) +".tif"); 
+
+
+//-----------------------------
+
+close(floor(i/numPerSlide) +".tif");
+
+run("Remove Overlay");
+}
+
+close("target");
+
+}
+
+
+}
+
+
+
+
+TestTime= getTime()- startTimeTest;
+
+//print(TestTime/1000);
+
+
+while(roiManager("count")>0){
+roiManager("select",0);
+roiManager("delete");
+}
+
+
+
+//--------------------------------------------
+//Save Coordinates.
+//==============================
+
+
+IDsArray = newArray("ID");
+
+for(i=0;i<randomTargets.length;i++){
+
+string = replace(randomTargets[i], ".Tif", "");
+string = replace(string, ".tif", "");
+
+IDsArray = Array.concat(IDsArray, string);
+
+}
+
+RowNumbers= Array.getSequence(randomTargets.length);
+
+surivalString1 = Array.concat("Img_Num", "Bg", "ID", "X", "Y", "flip", "angle");
+
+surivalString = String.join(surivalString1, "\t");
+
+dataFile = File.open(PatternCombinedPath+"Records.txt");
+
+print(dataFile,surivalString);
+
+
+for(i=0; i< RowNumbers.length; i++){
+
+surivalString1 = Array.concat(RowNumbers[floor(i/numPerSlide)], randomBackgrounds[i], IDsArray [1+i], targetXcoords[i], targetYcoords[i], targetFlip[i], targetAngle[i]);
+
+surivalString = String.join(surivalString1, "\t");
+
+print(dataFile, surivalString);
+
+}
+File.close(dataFile);
+
+//Array.show(targetXcoords);
+
+///TestPoint("");
+//--------------------------------------------
+//Scale hit markers.
+//==============================
+
+if(!isOpen("greenCircle.png")){
+
+open(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png");
+
+}
+
+if(!isOpen("redCircle.png")){
+
+open(getDirectory("plugins") + "1 CamoEvo/Interface/redCircle.png");
+
+}
+
+selectImage("greenCircle.png");
+
+ts = "x=- y=- height=" + widthReScale+80 + " width= "+ widthReScale+80  + "  interpolation=None";
+ts2 = "width="+ widthReScale+80  + " height=" + widthReScale+80  + " position=Center";
+run("Select None");
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+selectImage("redCircle.png");
+
+ts = "x=- y=- height=" + widthReScale+80  + " width= "+ widthReScale+80  + "  interpolation=None";
+ts2 = "width="+ widthReScale+80  + " height=" + widthReScale+80  + " position=Center";
+run("Select None");
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+
+
+
+selectImage("GameSlides");
+
+//----------------------------------------------------------------------------------------------------------------
+// 5) Show Slides
+//----------------------------------------------------------------------------------------------------------------
+
+selectImage("Loading");
+setBatchMode("Hide");
+
+
+selectImage("Evolving");
+setBatchMode("Hide");
+
+
+
+
+selectImage("01_Play.jpg");
+setBatchMode("Show");
+run("Maximize");
+
+
+//ADD text string
+setFont("Caldibri ", 32, "bold");
+ setColor( "#16150D");
+ stringB= "                                                          ";
+drawString(stringB, 740, 580, "#16150D");
+
+
+ setColor(255,255, 255);
+setJustification("center");
+stringT= "You have "+(TimeOutTime/1000)+" Seconds to click on each target.";
+drawString(stringT, 740, 580, "#16150D");
+
+setFont("Caldibri ", 32, "bold");
+ setColor( "#16150D");
+ stringB= "                                                          ";
+drawString(stringB, 740, 640, "#16150D");
+
+
+ setColor(255,255, 255);
+setJustification("center");
+
+TargetString = " target";
+if(numPerSlide>1){
+TargetString = " targets";
+}
+
+stringT= "Each slide will have " + numPerSlide + TargetString +" you need to find.";
+drawString(stringT, 740, 640, "#16150D");
+
+
+
+
+
+
+//BUTTON 1, Play
+//-----------------------------------------
+
+	b1_x1= 327;
+	b1_y1= 772;
+
+	b1_x2= 327 +  355;
+	b1_y2= 772 + 210;
+
+
+//BUTTON 2, Skip
+//-----------------------------------------
+
+	b2_x1= 797;
+	b2_y1= 772;
+
+	b2_x2= 797 +  355;
+	b2_y2= 772 + 210;
+
+
+//----------------------------------------
+
+selectImage("01_Play.jpg");
+
+
+whileGate=0;
+exitCheck=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+
+selectImage("01_Play.jpg");
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		whileGate=1;
+		exitCheck=0;
+
+		}
+
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		whileGate=1;
+		exitCheck=1;
+
+		}
+
+
+		}
+
+run("Select None");
+
+
+}
+
+if(exitCheck==1){
+setBatchMode(false);
+if(isOpen("blank")){
+selectImage("blank");
+close("\\Others");
+} else{
+close("*");
+}
+doCommand("CamoEvo Game");
+exit
+}
+
+
+
+TimesArray=newArray(randomBackgrounds.length+1);
+TimesArray[0] = "fitness";
+
+capTimesArray=newArray(randomBackgrounds.length+1);
+capTimesArray[0] = "capture_time";
+
+respTimesArray=newArray(randomBackgrounds.length+1);
+respTimesArray[0] = "response_time";
+
+while(roiManager("count")>0){
+roiManager("select",0);
+roiManager("delete");
+
+}
+run("Select None");
+
+selectImage("GameSlides");
+setSlice(1);
+run("Select None");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+run("Maximize");
+
+selectImage("01_Play.jpg");
+setBatchMode("Hide");
+
+
+
+
+
+// Game Play
+//==================================================
+
+for(j=0;j<randomBackgrounds.length / numPerSlide;j++){
+
+if(getImageID() != "GameSlides"){
+if(isOpen("GameSlides")){
+selectImage("GameSlides");
+} else {
+close("*");
+exit
+}
+
+}
+
+if(getSliceNumber() != (1+(j*2))){
+setSlice(1);
+}
+
+
+setColor("black");
+fillOval(ovalX, ovalY, ovalW, ovalH);
+setColor("white");
+setLineWidth(5);
+drawOval(ovalX, ovalY, ovalW, ovalH);
+
+
+centreGate=0;
+vLeng=9;
+
+while(centreGate==0){
+setColor("black");
+fillOval(ovalX, ovalY, ovalW, ovalH);
+setColor("white");
+setLineWidth(5);
+drawOval(ovalX, ovalY, ovalW, ovalH);
+
+for(v=0;v<vLeng;v++){
+getCursorLoc(x1, y1, z, modifiers);
+wait(100);
+getCursorLoc(x2, y2, z, modifiers);
+
+speedCheck = Math.sqrt(Math.sqr(x1-x2)+Math.sqr(y1-y2))/100;
+//print(speedCheck);
+
+if(x2>ovalX && y2>ovalY && x2<(ovalX+ovalW) && y2<(ovalY+ovalH)){
+centreGate=1;
+greyColor = 255/vLeng;
+greyColor = v*greyColor;
+setColor(greyColor,greyColor,greyColor);
+fillOval(ovalX, ovalY, ovalW, ovalH);
+}else{
+
+v=0;
+setColor("black");
+fillOval(ovalX, ovalY, ovalW, ovalH);
+setColor("white");
+setLineWidth(5);
+drawOval(ovalX, ovalY, ovalW, ovalH);
+centreGate=0;
+}
+
+
+
+
+
+}
+}
+
+
+
+
+
+getCursorLoc(x, y, z, modifiers);
+
+wait(500);
+
+if(getSliceNumber() != (2+(j))){
+setSlice(2+(j));
+}
+
+run("Select None");
+
+
+
+		timeOutGate1= 1;
+		timeOutGate2= 0;
+		timeOutGate3= 0;
+		timeOutGate4= 0;
+		timeOutGate5= 0;
+		timeOutGate6= 0;
+
+
+
+		if(numPerSlide == 2){
+		timeOutGate2= 1;
+		}
+
+		if(numPerSlide == 3){
+		timeOutGate2= 1;
+		timeOutGate3= 1;
+		}
+
+		if(numPerSlide == 4){
+		timeOutGate2= 1;
+		timeOutGate3= 1;
+		timeOutGate4= 1;
+		}
+		
+		
+		if(numPerSlide == 6){
+		timeOutGate2= 1;
+		timeOutGate3= 1;
+		timeOutGate4= 1;
+		timeOutGate5= 1;
+		timeOutGate6= 1;
+		}
+
+
+
+		startTime = getTime();
+		i= getTime()- startTime;
+		TimeDeduct=0;
+
+				//Initiate Slide
+				//--------------------
+				while(i<TimeOutTime){
+				
+				i= getTime()- startTime;
+
+				if(!isOpen("GameSlides")){
+				close("*");
+				exit
+				
+				}
+
+				selectImage("GameSlides");
+		
+				if(getSliceNumber() != (2+(j))){
+				setSlice(2+(j));
+				}
+				
+			
+				if(respTimesArray[(j*numPerSlide)+1]==0){
+				getCursorLoc(x1, y1, z, modifiers);
+				cursorDist = Math.sqrt( Math.sqr(x1-ovalCX) + (y1-ovalCY));
+				if(cursorDist>ovalH/2){
+				for(v=0;v<numPerSlide;v++){
+				respTimesArray[(j*numPerSlide)+v+1]= i;
+				}
+				}
+				}
+				
+				
+
+
+					if(selectionType!=-1){
+					Roi.getCoordinates(xpoints, ypoints);
+					
+					
+
+					//Target 1
+					
+					if(timeOutGate1 == 1){
+					
+					targetNum = (j*numPerSlide);
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate1=0;
+						
+						
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+
+
+						
+
+						}
+					
+					}
+					
+					
+					if(timeOutGate2 == 1){
+					
+					targetNum = (j*numPerSlide)+1;
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate2=0;
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+
+
+						}
+					
+					}
+					
+					
+					
+					if(timeOutGate3 == 1){
+					
+					targetNum = (j*numPerSlide)+2;
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate3=0;
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+					
+
+
+						}
+					
+					}
+					
+					
+					if(timeOutGate4 == 1){
+					
+					targetNum = (j*numPerSlide)+3;
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate4=0;
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+
+						
+
+
+						}
+					
+					}
+					
+					
+					if(timeOutGate5 == 1){
+					
+					targetNum = (j*numPerSlide)+4;
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate5=0;
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+			
+
+
+						}
+					
+					}
+					
+					
+					if(timeOutGate6 == 1){
+					
+					targetNum = (j*numPerSlide)+5;
+					
+					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+
+					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+
+					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
+
+
+						if(DistH <((widthReScale/2)+80)){
+
+						capTimesArray[targetNum+1]=i - TimeDeduct;
+						TimeDeduct = TimeDeduct + 0.5;
+						
+						timeOutGate6=0;
+						
+
+						circleX = targetXcoords[targetNum]-40;
+						circleY = targetYcoords[targetNum]-40;
+						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						
+						
+
+
+						}
+					
+					}
+						
+			
+					run("Select None");
+					
+					if(timeOutGate1 == 0 && timeOutGate2 == 0 && timeOutGate3 == 0 && timeOutGate4 == 0 && timeOutGate5 == 0 && timeOutGate6 == 0  ){
+					i=TimeOutTime;
+					}
+					
+					
+					}
+					
+				
+			
+				
+
+			
+
+			wait(6);
+			
+			}
+
+		if(timeOutGate1==1){
+		
+		targetNum = (j*numPerSlide);
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+		
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		if(timeOutGate2==1){
+		
+		targetNum = (j*numPerSlide)+1;
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		if(timeOutGate3==1){
+		
+		targetNum = (j*numPerSlide)+2;
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		if(timeOutGate4==1){
+		
+		targetNum = (j*numPerSlide)+3;
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		if(timeOutGate5==1){
+		
+		targetNum = (j*numPerSlide)+4;
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		if(timeOutGate6==1){
+		
+		targetNum = (j*numPerSlide)+5;
+
+		capTimesArray[targetNum+1]=TimeOutTime;
+		respTimesArray[targetNum+1]=TimeOutTime;
+
+		circleX = targetXcoords[targetNum]-40;
+		circleY = targetYcoords[targetNum]-40;
+
+		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+
+		}
+		
+		
+		
+	
+
+		wait(1500);
+
+		}
+
+
+
+
+for(i=1; i <capTimesArray.length;i++){
+if(respTimesArray[i] >= capTimesArray[i] - 600){
+TimesArray[i] = respTimesArray[i];
+}else{
+TimesArray[i] = capTimesArray[i];
+}
+}
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 6) Start Evolution
+//----------------------------------------------------------------------------------------------------------------
+
+
+
+//--------------------------------------------
+//Animation
+//==============================
+//--------------------------------------------
+//Run Evolving Animation
+//========================
+
+selectImage("Evolving");
+for(i=0;i<4;i++){
+setSlice(i+1);
+
+ setFont("Caldibri ", 52, "bold");
+ setColor( "#16150D");
+
+ stringB= "                                         ";
+
+drawString(stringB, 740, 552, "#16150D");
+
+
+
+ setColor(255,255, 255);
+
+
+
+setJustification("center");
+
+ stringT= " Evolving Generation "+(GenNumber+1)+" ... ";
+
+ drawString(stringT, 740, 552, "#16150D");
+
+}
+
+selectImage("Evolving");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+run("Maximize");
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+
+selectImage("GameSlides");
+setBatchMode("Hide");
+close("GameSlides");
+
+
+
+//--------------------------------------------
+//Save Results
+//==============================
+
+
+
+
+if(File.exists(SurvGenNum)==1){
+File.delete(SurvGenNum);
+}
+
+
+for(i=0; i< TimesArray.length; i++){
+
+surivalString1 = Array.concat(IDsArray[i], TimesArray[i], respTimesArray[i], capTimesArray[i]);
+
+surivalString = String.join(surivalString1, "\t");
+
+File.append(surivalString, SurvGenNum);
+
+
+
+
+}
+}
+
+
+//--------------------------------------------
+//Image GA
+//==============================
+
+
+DirectoryString= "select=[" + CheckDirectory+ "]";
+
+run("ImageGA LITE noPrint", DirectoryString);
+
+
+
+//--------------------------------------------
+//While Check
+//==============================
+
+
+
+checkB1 = getFileList(CheckDirectory);
+checkB1 = checkB1.length;
+
+
+	if(checkB1>checkB2){
+
+	checkB2 = getFileList(CheckDirectory);
+	checkB2 = checkB2.length;
+	
+	} else {
+
+	checkA=0;
+
+	}
+
+
+} // This will Loop until ImageGA stops producing new generations
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 7) Display Game Complete Screen
+//----------------------------------------------------------------------------------------------------------------
+selectImage("Loading");
+setBatchMode("hide");
+
+
+checkZ=0;
+
+Slide=1;
+
+if(!isOpen("EndScreen")){
+
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+FinishedDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/End/01.jpg";
+} else {
+FinishedDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/End/";
+}
+
+
+run("Image Sequence...", "open=[&FinishedDirectory] sort");
+
+
+rename("EndScreen");
+
+}
+
+selectImage("EndScreen");
+
+setBatchMode("Show");
+run("Maximize");
+setLocation(xScale, yScale, wScale, hScale);
+
+
+
+
+
+//BUTTON 1, Run Camo Anlysis
+//-----------------------------------------
+
+
+	b1_x1= 386;
+	b1_y1= 478;
+
+	b1_x2= b1_x1 + 694;
+	b1_y2= b1_y1 + 156;
+	
+	
+//BUTTON 2, Play More
+//-----------------------------------------
+
+
+	b2_x1= 386;
+	b2_y1= 688;
+
+	b2_x2= b2_x1 + 694;
+	b2_y2= b2_y1 + 156;
+	
+	
+//BUTTON 3, Exit
+//-----------------------------------------
+
+
+	b3_x1= 386;
+	b3_y1= 896;
+
+	b3_x2= b3_x1 + 694;
+	b3_y2= b3_y1 + 156;
+	
+	
+
+
+keepGoing=0;
+whileGate2=0;
+
+selectImage("EndScreen");
+run("Select None");
+
+wait(100);
+
+
+
+while(whileGate2==0){
+wait(100);
+
+	setSlice(Slide);
+
+	selectImage("EndScreen");
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		keepGoing=0;
+		whileGate2=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		keepGoing=1;
+		whileGate2=1;
+
+		}
+		
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+
+	setBatchMode(false);
+if(isOpen("blank")){
+selectImage("blank");
+close("\\Others");
+} else{
+close("*");
+}
+doCommand("CamoEvo Game");
+exit
+
+		}
+		
+
+		run("Select None");
+
+		}
+
+
+
+
+}
+
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 7.5)Loop Again
+//----------------------------------------------------------------------------------------------------------------
+// Loop if you Choose to Keep Going
+//------------------------------------
+if(keepGoing==1){
+setBatchMode("hide");
+
+
+selectImage("Loading");
+setBatchMode("show");
+run("Maximize");
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+
+// Changes population setting by adding 5 generations.
+//-----------------------------------------------------
+PopulationSet = PopLocation+"Population Settings.txt";
+PopulationSettings = File.openAsString(PopulationSet );
+PopulationSettings = split(PopulationSettings, "\n");
+
+Line1=PopulationSettings [0];
+Line2=PopulationSettings [1];
+Line3=PopulationSettings [2];
+Line4=PopulationSettings [3];
+Line5=PopulationSettings [4];
+
+Line2 = split(Line2,"\t");
+Line2 = newArray(Line2[0], parseFloat(Line2[1])+5);
+Line2 = String.join(Line2,"\t");
+
+PopulationSettings= String.join(Array.concat(Line1,Line2,Line3,Line4,Line5), "\n");
+
+
+File.delete(PopulationSet);
+File.append(PopulationSettings,PopulationSet);
+
+
+checkZ=1;
+
+// Changes algorithim setting by adding 5 generations.
+//-----------------------------------------------------
+AlgorithimSet = PopLocation+"AlgorithmSettings.txt";
+AlgorithimSettings = File.openAsString(AlgorithimSet);
+AlgorithimSettings = split(AlgorithimSettings, "\n");
+AlgorithimSettings[0]=parseFloat(AlgorithimSettings[0])+5;
+AlgorithimSettings = String.join(AlgorithimSettings, "\n");
+
+File.delete(AlgorithimSet);
+
+File.append(AlgorithimSettings, AlgorithimSet);
+
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/01.jpg";
+} else {
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/";
+}
+
+
+if(!isOpen("Evolving")){
+run("Image Sequence...", "open=[&EvolvingDirectory] sort");
+}
+
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 8) Load up Results and Present them.
+//----------------------------------------------------------------------------------------------------------------
+} else{
+
+
+// Pre load slides
+
+if(!isOpen("Evolving")){
+close("Evolving");
+}
+if(!isOpen("Evolving")){
+close("Evolving");
+}
+
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+AnalysingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Analysing/01.jpg";
+} else {
+AnalysingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Analysing/";
+}
+
+
+
+run("Image Sequence...", "open=[&AnalysingDirectory] sort");
+rename("Analysing");
+setBatchMode("show");
+run("Maximize");
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+
+if(isOpen("EndScreen")){
+selectImage("EndScreen");
+setBatchMode("hide");
+}
+
+
+
+
+/*
+open(FinishedDirectory + "02.jpg");
+rename("ResultsScreen");
+*/
+//--------------------------------------------
+// Get Plots
+//============================================
+
+// Get Fitness
+//--------------------------------------------
+
+		survivalDIR = CheckDirectory;
+
+		survivalArray = newArray();
+
+		survivalList  =  getFileList(survivalDIR);
+
+		Leng = lengthOf(survivalList);
+
+		for(i=0; i<Leng; i++) { 
+			if(endsWith(survivalList[i], "_survival.txt")==1){
+
+				survivalArray = Array.concat(survivalArray, survivalList[i]);
+			}}
+
+
+		GenArray = newArray();
+		IDarray = newArray();
+		FitnessArray = newArray();
+		ResponseArray = newArray();
+		CaptureArray = newArray();
+		
+		
+		FitnessMean=newArray();
+
+		shortGenArray = newArray();
+		FitnessMeanArray = newArray();
+		FitnessErrorArray = newArray();
+		TimeoutArray = newArray();
+		genomeArray = newArray();
+
+
+		for (i=0; i<survivalArray.length; i++){
+		
+		IDtempArray=newArray();
+
+		GenNum = survivalDIR + "generation_" + i + "_survival" + txt;
+		GenName = "generation_" + i + "_survival" + txt;
+
+		referenceString=File.openAsString(GenNum);	// open txt data file
+		referenceRows=split(referenceString, "\n");
+		referenceRows = Array.deleteIndex(referenceRows, 0);
+		
+		L = referenceRows.length;
+
+		IDs = newArray(L);
+		Fitness = newArray(L);
+		
+		Response = newArray(L);
+		Capture = newArray(L);
+		
+		Real=newArray(L);
+		
+		TimeOut = 0;
+
+		for(f=0; f<L; f++){
+		
+		Temp=split(referenceRows[f], "\t");
+		
+		GenArray = Array.concat(GenArray, i);
+		
+		IDs[f] = Temp[0];
+		
+		Fitness[f]= Temp[1];
+		Response[f] = Temp[2];
+		Capture[f] = Temp[3];
+
+		if(Fitness[f]==TimeOutTime){
+		TimeOut = TimeOut+1;
+		}
+
+
+		if(Temp.length==3){
+		Real[f] = Temp[2];
+		}else{
+		Real[f] = "";
+		}
+		}
+		
+		GenomeNum = survivalDIR + "generation_" + i  + txt;
+		
+		
+		referenceString=File.openAsString(GenomeNum);	// open txt data file
+		referenceRows=split(referenceString, "\n");
+		GenomeNames = referenceRows[0];
+		GenomeNames = split(GenomeNames,"\t");
+		GenomeNames = Array.deleteIndex(GenomeNames, 0);
+		GenomeNames = String.join(GenomeNames, "\t");
+		referenceRows = Array.deleteIndex(referenceRows, 0);
+		
+
+		L = referenceRows.length;
+		
+		for(f=0; f<L; f++){
+		IDname = IDs[f];
+		
+		for(v=0; v<L; v++){
+		splitStr = split(referenceRows[v],"\t");
+		genomeStr = Array.deleteIndex(splitStr, 0);
+		genomeStr =String.join(genomeStr, "\t");
+		genomeArray=Array.concat(genomeArray, genomeStr);
+		}
+		}
+		//Array.show(genomeArray);
+		
+		
+		
+
+		shortGenArray = Array.concat(shortGenArray, i);
+
+		TimeoutArray = Array.concat(TimeoutArray, TimeOut);
+
+		Array.getStatistics(Fitness, min, max, mean, stdDev);
+
+		FitnessMeanArray = Array.concat(FitnessMeanArray, mean);
+		FitnessErrorArray =  Array.concat(FitnessErrorArray, stdDev/Math.sqrt(Fitness.length));
+
+		FitnessArray = Array.concat(FitnessArray, Fitness);
+		ResponseArray = Array.concat(ResponseArray, Response);
+		CaptureArray = Array.concat(CaptureArray, Capture);
+		
+		RealArray = Array.concat(RealArray, Real);
+		IDarray = Array.concat(IDarray, IDs);
+
+		
+
+		}
+
+	
+	
+
+		 
+				//  Line Plot
+				 
+				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
+				xMax = max+0.2;
+				Array.getStatistics( FitnessMeanArray, min, max, mean, stdDev);
+				yMax = max;
+				Array.getStatistics( FitnessErrorArray, min, max, mean, stdDev);
+				yMax = yMax + max +1000;
+				if(yMax>=TimeOutTime){
+				yMax=TimeOutTime;
+				}
+				Plot.create("Line Plot", "Generation", "Capture Time (milliseconds)", shortGenArray, FitnessMeanArray);
+				Plot.setLineWidth(3);
+				Plot.setFontSize(21);
+				Plot.setAxisLabelSize(28, "bold");
+				
+				Plot.setLimits(0,  xMax, 0, yMax);
+				Plot.setLineWidth(2);
+				Plot.add("error bars", FitnessErrorArray);
+				Plot.show();
+
+
+
+run("Select All");
+run("Duplicate...", "title=CopyPlot");
+run("Invert");
+selectImage("CopyPlot");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+plotScale = 522/width;
+
+
+
+ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
+ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+//Array.show("check_old",GenArray, IDarray, FitnessArray);
+
+
+// Get Luminance, Colour, Pattern, Gabrat
+//--------------------------------------------
+
+		combinedList =  getFileList(survivalDIR);
+
+		Leng = lengthOf(survivalList);
+		
+		CombinedArray = newArray();
+
+		for(i=0; i<Leng; i++) { 
+			if(startsWith(survivalList[i], "Combined")==1){
+
+					CombinedArray  = Array.concat(CombinedArray , survivalList[i]);
+			}}
+
+		
+		
+	
+		LumArray2 = newArray();
+		PatternArray2 = newArray();
+		ColourArray2 = newArray();
+		GabRatArray2 = newArray();
+		
+		Lum_MeanArray = newArray();
+		Lum_ErrorArray = newArray();
+		
+		Pattern_MeanArray = newArray();
+		Pattern_ErrorArray = newArray();
+		
+		Colour_MeanArray = newArray();
+		Colour_ErrorArray = newArray();
+		
+		GabRat_MeanArray = newArray();
+		GabRat_ErrorArray = newArray();
+		
+		imageNumArray=newArray();
+		XcoordArray = newArray();
+		YcoordArray = newArray();
+		rotationArray = newArray();
+		flipArray = newArray();
+		
+		IDarrayCheck = newArray();
+ 
+
+		
+		startTimeTest = getTime();
+		TestTime= getTime()- startTimeTest;
+
+		FolderName=File.getName(survivalDIR);
+		
+		
+			oldestGen=-1;
+			NewAnalysisGate = 1;
+		
+			if(File.exists(survivalDIR+"Data_Output.txt")){
+			referenceString=File.openAsString(survivalDIR+"Data_Output.txt");	// open txt data file
+			referenceRows=split(referenceString, "\n");
+			referenceRows=Array.deleteIndex(referenceRows, 0);
+			
+			if(referenceRows.length>0){
+			temp = split(referenceRows[referenceRows.length-1], "\t");
+			oldestGen = temp[0];
+			}
+			
+			if(referenceRows.length == (CombinedArray.length * PopSize)){
+			NewAnalysisGate = 0;
+			}
+		
+			}
+			
+			if(File.exists(survivalDIR+"Data_Output_" + FolderName + ".txt")){
+			referenceString=File.openAsString(survivalDIR+"Data_Output_" + FolderName + ".txt");	// open txt data file
+			referenceRows=split(referenceString, "\n");
+			referenceRows=Array.deleteIndex(referenceRows, 0);
+			
+			if(referenceRows.length>0){
+			temp = split(referenceRows[referenceRows.length-1], "\t");
+			oldestGen = temp[0];
+			}
+			
+			if(referenceRows.length == (CombinedArray.length * PopSize)){
+			NewAnalysisGate = 0;
+			}
+		
+			}
+
+						
+			for (i=0; i<CombinedArray.length; i++){
+
+			CombinedNum = survivalDIR + "Combined_GenPat_"+i+"/";
+			
+	
+			luminanceDifference = newArray();
+			patternDifference = newArray();
+			colourDifference = newArray();
+			GabRatArray = newArray();
+			
+			fileList = getFileList(CombinedNum);
+			photoList = newArray();
+			for(f=0; f<fileList.length; f++){
+			if(endsWith(fileList[f], ".tif")){
+			photoList=Array.concat(photoList,fileList[f]);
+			}
+			}
+			
+			
+			
+			if(i > oldestGen){
+			
+			CombinedNumAlt = survivalDIR + "Combined_GenPat_"+i+"/Records.txt";
+
+			referenceString=File.openAsString(CombinedNumAlt);	// open txt data file
+			referenceRows=split(referenceString, "\n");
+			referenceRows=Array.deleteIndex(referenceRows, 0);
+			
+			for(Z=0; Z<referenceRows.length; Z++){
+			
+			temp=split(referenceRows[Z], "\t");
+			
+			IDarrayCheck = Array.concat(IDarrayCheck, temp[2]);
+			imageNumArray = Array.concat(imageNumArray, temp[1]);
+			XcoordArray = Array.concat(XcoordArray, parseFloat(temp[3]));
+			YcoordArray = Array.concat(YcoordArray, parseFloat(temp[4]));
+			rotationArray = Array.concat(rotationArray, parseFloat(temp[6]));
+			flipArray = Array.concat(flipArray, temp[5]);
+ 
+			}
+			
+			for(f=0; f<photoList.length; f++){
+
+			
+			
+			
+			open(CombinedNum + f + ".tif");
+			rename("Analyse");
+			
+			
+								//Get Measuements
+								//-----------------------------
+								run("To ROI Manager");
+								run("Lab Stack");
+								run("32-bit");
+
+								run("Set Measurements...", "mean standard redirect=None decimal=9");
+								run("Clear Results");
+
+								roiManager("select", Array.getSequence( roiManager("count") ) );
+								roiManager("multi-measure one");
+
+
+								for(l=0; l<numPerSlide; l++) {
+
+
+
+									//L mean difference
+									//-----------------------
+									targetColumn = "Mean(prey_"+ l +")";
+									targetL = getResult(targetColumn , 0);
+
+									localColumn = "Mean(local_"+ l +")";
+									localL = getResult(localColumn, 0);
+
+									Ldiff = Math.sqrt( Math.sqr(localL - targetL));
+
+									luminanceDifference = Array.concat(luminanceDifference, Ldiff );
+
+
+									//Pattern difference
+									//-----------------------
+									targetColumn = "StdDev(prey_"+ l +")";
+									targetP = getResult(targetColumn , 0);
+
+									localColumn = "StdDev(local_"+ l +")";
+									localP = getResult(localColumn, 0);
+
+									Pdiff = Math.sqrt( Math.sqr(localP - targetP));
+
+									patternDifference = Array.concat(patternDifference, Pdiff );
+
+									//Colour difference
+									//-----------------------
+									// A
+									//-----
+									targetColumn = "Mean(prey_"+ l +")";
+									targetA = getResult(targetColumn , 1);
+
+									localColumn = "Mean(local_"+ l +")";
+									localA = getResult(localColumn, 1);
+
+									Adiff = Math.sqr(localA - targetA);
+
+									// B
+									//-----
+									targetColumn = "Mean(prey_"+ l +")";
+									targetB = getResult(targetColumn , 2);
+
+									localColumn = "Mean(local_"+ l +")";
+									localB = getResult(localColumn, 2);
+
+									Bdiff = Math.sqr(localB - targetB);
+
+									Cdiff = Math.sqrt(Adiff + Bdiff);
+
+									colourDifference = Array.concat(colourDifference, Cdiff );
+
+								}
+
+
+
+								//GABRAT
+								//---------------------------
+								function 	roiGetList(String1){
+
+
+								roiList1 = newArray();
+								roiLocs1 = newArray();
+								roiFullList1 = newArray();
+								nROIs1 = roiManager("count");
+
+								for(j=0; j<nROIs1; j++){
+									roiManager("Select", j);
+									tStr = getInfo("selection.name");
+									roiFullList1 = Array.concat(roiFullList1, tStr);
+									if(startsWith(tStr, String1) == true){
+										roiList1 = Array.concat(roiList1, tStr);
+										roiLocs1= Array.concat(roiLocs1, j);
+										}
+									}
+
+								return roiLocs1;
+
+								}
+
+
+								LOCALS = roiGetList("local");
+								roiManager("select", LOCALS);
+								roiManager("delete");
+
+
+
+								run("Clear Results");
+								run("Set Measurements...", "area mean min redirect=None decimal=9");
+								angles = 4;
+								sigma = 3.0;
+								gamma = 1.0;
+								freq = 2.0;
+
+
+								for(j=0; j<roiManager("count"); j++){
+
+
+								roiManager("Select", j);
+
+								tStr = getInfo("selection.name");
+
+								if(startsWith(tStr, "Scale Bar") == false){ // only measure ROIs which aren't scale bars
+								tStr = getTitle + "_" + tStr;
+
+										setSlice(1);
+										tStr2 = tStr + "_" + getMetadata("Label");
+										run("GabRat Disruption", "number_of_angles=&angles sigma=&sigma gamma=&gamma frequency=&freq label=&tStr2");
+									
+								}// scale bar
+								}//j roi
+
+
+								for(l=0; l<numPerSlide; l++) {
+								Row = l*2;
+
+								targetGAB = getResult("GabRat" , Row);
+
+								GabRatArray = Array.concat(GabRatArray, parseFloat(targetGAB));
+								}
+
+
+
+
+								
+
+			close("Analyse");
+			}
+			}
+
+			
+			if(i<=oldestGen){
+			for(f=0; f<PopSize; f++){
+			indexStr = (i*(PopSize))+f;
+			temp = split(referenceRows[indexStr], "\t");
+			
+			
+			luminanceDifference = Array.concat(luminanceDifference, parseFloat(temp[5]));
+			patternDifference = Array.concat(patternDifference, parseFloat(temp[6]));
+			colourDifference = Array.concat(colourDifference, parseFloat(temp[7]));
+			GabRatArray = Array.concat(GabRatArray, parseFloat(temp[8]));
+			imageNumArray = Array.concat(imageNumArray, temp[9]);
+			XcoordArray = Array.concat(XcoordArray, parseFloat(temp[10]));
+			YcoordArray = Array.concat(YcoordArray, parseFloat(temp[11]));
+			rotationArray = Array.concat(rotationArray, parseFloat(temp[12]));
+			flipArray = Array.concat(flipArray, temp[13]);
+ 
+			}
+			}
+			
+		
+		
+	
+			
+			LumArray2=Array.concat(LumArray2, luminanceDifference);
+			PatternArray2=Array.concat(PatternArray2, patternDifference);
+			ColourArray2=Array.concat(ColourArray2, colourDifference);
+			GabRatArray2 =Array.concat(GabRatArray2 , GabRatArray);
+		
+			
+		
+			
+			Array.getStatistics(luminanceDifference, min, max, mean, stdDev);
+			Lum_MeanArray  = Array.concat(Lum_MeanArray , mean);
+			Lum_ErrorArray =  Array.concat(	Lum_ErrorArray, stdDev/Math.sqrt(luminanceDifference.length));
+			
+			Array.getStatistics( patternDifference, min, max, mean, stdDev);
+			Pattern_MeanArray  = Array.concat(Pattern_MeanArray , mean);
+			Pattern_ErrorArray =  Array.concat(	Pattern_ErrorArray, stdDev/Math.sqrt(patternDifference.length));
+			
+			Array.getStatistics( colourDifference, min, max, mean, stdDev);
+			Colour_MeanArray  = Array.concat(Colour_MeanArray , mean);
+			Colour_ErrorArray =  Array.concat(	Colour_ErrorArray, stdDev/Math.sqrt(colourDifference.length));
+			
+			Array.getStatistics(GabRatArray, min, max, mean, stdDev);
+			GabRat_MeanArray  = Array.concat(GabRat_MeanArray , mean);
+			GabRat_ErrorArray =  Array.concat(	GabRat_ErrorArray, stdDev/Math.sqrt(GabRatArray.length));
+			
+			
+			
+			
+
+			}
+			
+			
+
+
+TestTime= getTime()- startTimeTest;
+		//print(TestTime/1000);
+
+
+
+scaledLuminance = newArray();
+scaledPattern = newArray();
+scaledColour = newArray();
+scaledGabRat = newArray();
+
+
+Array.getStatistics(Lum_MeanArray, min, max, mean, stdDev);
+for(i=0; i< Lum_MeanArray.length; i++){
+scaledLuminance = Array.concat(scaledLuminance, (Lum_MeanArray[i]-mean)/stdDev);
+}
+
+Array.getStatistics(Pattern_MeanArray, min, max, mean, stdDev);
+for(i=0; i< Pattern_MeanArray.length; i++){
+scaledPattern = Array.concat(scaledPattern, (Pattern_MeanArray[i]-mean)/stdDev);
+}
+
+Array.getStatistics(Colour_MeanArray, min, max, mean, stdDev);
+for(i=0; i< Colour_MeanArray.length; i++){
+scaledColour = Array.concat(scaledColour, (Colour_MeanArray[i]-mean)/stdDev);
+}
+
+Array.getStatistics(GabRat_MeanArray, min, max, mean, stdDev);
+for(i=0; i< GabRat_MeanArray.length; i++){
+scaledGabRat = Array.concat(scaledGabRat, (GabRat_MeanArray[i]-mean)/stdDev);
+}
+
+
+			
+// Get Plots
+//--------------------------
+//setBatchMode("exit and display");
+
+			//  Lum Plot
+				 
+				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
+				xMax = max+0.2;
+				xMin = min;
+				Array.getStatistics( Lum_MeanArray, min, max, mean, stdDev);
+				yMax = max+stdDev;
+				yMin = min-stdDev;
+				if(yMin<0){
+				yMin=0;
+				}
+			
+				Plot.create("Line Plot", "Generation", "Luminance Distance", shortGenArray, Lum_MeanArray);
+				Plot.setLineWidth(3);
+				Plot.setFontSize(21);
+				Plot.setAxisLabelSize(28, "bold");
+				
+				Plot.setLimits(0,  xMax, yMin, yMax);
+				Plot.setLineWidth(2);
+				
+				Plot.add("error bars", Lum_ErrorArray);
+				
+				Plot.show();
+			
+
+run("Select All");
+run("Duplicate...", "title=LuminancePlot");
+run("Invert");
+selectImage("LuminancePlot");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+plotScale = 522/width;
+
+ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
+ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+
+//---------------------------------
+
+			//  Pattern Plot
+				 
+				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
+				xMax = max+0.2;
+				xMin = min;
+				Array.getStatistics( Pattern_MeanArray, min, max, mean, stdDev);
+					
+				yMax = max+stdDev;
+				yMin = min-stdDev;
+				if(yMin<0){
+				yMin=0;
+				}
+				
+				
+			
+				Plot.create("Line Plot", "Generation", "Contrast Difference", shortGenArray, Pattern_MeanArray);
+				Plot.setLineWidth(3);
+				Plot.setFontSize(21);
+				Plot.setAxisLabelSize(28, "bold");
+				
+				Plot.setLimits(0,  xMax, yMin, yMax);
+				Plot.setLineWidth(2);
+				
+				Plot.add("error bars", Pattern_ErrorArray);
+				
+				Plot.show();
+			
+
+run("Select All");
+run("Duplicate...", "title=PatternPlot");
+run("Invert");
+selectImage("PatternPlot");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+plotScale = 522/width;
+
+ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
+ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+//---------------------------------
+
+			//  Colour Plot
+				 
+				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
+				xMax = max+0.2;
+				xMin = min;
+				Array.getStatistics( Colour_MeanArray, min, max, mean, stdDev);
+				yMax = max+stdDev;
+				yMin = min-stdDev;
+				if(yMin<0){
+				yMin=0;
+				}
+				
+				
+			
+				Plot.create("Line Plot", "Generation", "Colour Distance", shortGenArray, Colour_MeanArray);
+				Plot.setLineWidth(3);
+				Plot.setFontSize(21);
+				Plot.setAxisLabelSize(28, "bold");
+				
+				Plot.setLimits(0,  xMax, yMin, yMax);
+				Plot.setLineWidth(2);
+				
+				Plot.add("error bars", Colour_ErrorArray);
+				
+				Plot.show();
+			
+
+run("Select All");
+run("Duplicate...", "title=ColourPlot");
+run("Invert");
+selectImage("ColourPlot");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+plotScale = 522/width;
+
+ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
+ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+//---------------------------------
+
+			//  GabRat Plot
+				 
+				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
+				xMax = max+0.2;
+				xMin = min;
+				Array.getStatistics( GabRat_MeanArray, min, max, mean, stdDev);
+				yMax = max+stdDev;
+				yMin = min-stdDev;
+				if(yMin<0){
+				yMin=0;
+				}
+				
+				
+			
+				Plot.create("Line Plot", "Generation", "GabRat", shortGenArray, GabRat_MeanArray);
+				Plot.setLineWidth(3);
+				Plot.setFontSize(21);
+				Plot.setAxisLabelSize(28, "bold");
+				
+				Plot.setLimits(0,  xMax, yMin, yMax);
+				Plot.setLineWidth(2);
+				
+				Plot.add("error bars", GabRat_ErrorArray);
+				
+				Plot.show();
+			
+
+run("Select All");
+run("Duplicate...", "title=GabRatPlot");
+run("Invert");
+selectImage("GabRatPlot");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+
+plotScale = 522/width;
+
+ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
+ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+
+
+//--------------------------------------------
+// Get Target Pictures
+//============================================
+
+
+GenNum = survivalDIR + "generation_" + (survivalArray.length-1) +"_survival"  + txt;
+
+GenName = "generation_" + (survivalArray.length-1);
+
+PhenotypePath =  survivalDIR+"GenPat_"+ (survivalArray.length-1) +"/";
+
+
+
+				referenceString=File.openAsString(GenNum);	// open txt data file
+				referenceRows=split(referenceString, "\n");
+
+				IDarray2 =newArray();
+				FitnessArray2 =newArray();
+
+				for(j=1;j<referenceRows.length;j++){
+				tempArray = split(referenceRows[j], "\t");
+				IDarray2=Array.concat(IDarray2, tempArray [0]);
+				FitnessArray2=Array.concat(FitnessArray2, parseFloat( tempArray [1] ));
+				}
+
+
+
+				FitnessRanked = Array.rankPositions(FitnessArray2);
+
+				index=Array.getSequence(FitnessRanked.length);
+
+				IDRankedarray = newArray();
+
+				IDSort=Array.copy(IDarray2);
+
+				for(j=0;j<FitnessRanked.length;j++){
+
+				str = FitnessRanked[FitnessRanked.length-1-j];
+				IDRankedarray = Array.concat(IDRankedarray,IDarray2[str]);
+
+				}
+
+
+for(i=0; i<3; i++){
+				
+for(j=0; j<3; j++){
+
+
+IDnam = IDRankedarray[(i*3)+j];
+
+open(PhenotypePath+IDnam+".tif");
+
+ts = "x=- y=- width="+ 157 + " height=" + 157  + "  interpolation=None";
+ts2 = "width="+ 157 + " height=" + 157 + " position=Center";
+
+run("Scale...", ts);
+run("Canvas Size...", ts2);
+
+
+selectImage("EndScreen");
+slide=3;
+
+setSlice(slide);
+
+addImageString = "image="+IDnam+".tif"+ " x=" + 821 + (177*j) + " y=" + 300 + (186*i) + " opacity=100 zero";
+run("Add Image...", addImageString);
+
+setJustification("center");
+setColor("white");
+setFont("SansSerif",18);
+
+Rank = "Rank " + j+1 + (i*3);
+
+drawString(Rank , 817 + (177*j)+(177/2), (300 + (186*i))+ 186);
+
+
+}
+}			
+
+//Array.show(IDarrayCheck, IDarray, genomeArray);
+
+
+// Save Data
+//------------------------------
+
+
+dataFile = File.open(survivalDIR+"Data_Output_" + FolderName + ".txt");  
+
+printArray = Array.concat("Generation", "ID", "Survival_Time", "Response_Time", "Capture_Time", "Luminance_Difference", "Contrast_Difference", "Colour_Difference", "GabRat_Edge_Disruption", "Image_ID", "X_Coordinate", "Y_Coordinate", "Rotation", "Flip");
+
+printString = String.join(printArray, "\t");
+
+printString= printString + "\t" + GenomeNames;
+
+print(dataFile, printString);
+
+
+for(i=0; i< GenArray.length;i++){
+
+printArray = Array.concat(GenArray[i], IDarray[i], FitnessArray[i], ResponseArray[i], CaptureArray[i], LumArray2[i], PatternArray2[i], ColourArray2[i], GabRatArray2[i], imageNumArray[i], XcoordArray[i], YcoordArray[i], rotationArray[i], flipArray[i], genomeArray[i] );
+
+printString = String.join(printArray, "\t");
+
+print(dataFile, printString);
+	
+}
+
+File.close(dataFile);
+
+
+	
+
+
+// Give Average times
+//------------------------------
+selectImage("EndScreen");
+setColor(255,255, 255);
+setFont("Caldibri ", 30);
+setJustification("left");
+
+ stringT= "Average Times:";
+ drawString(stringT, 195, 340, "#16150D");
+ 
+ 
+ setFont("Caldibri ", 24);
+
+ stringT= "Generation 0 = " + toString( (FitnessMeanArray[0]/1000), 2)+ " seconds";
+ drawString(stringT, 195, 390, "#16150D");
+ 
+ stringT= "Generation "+ FitnessMeanArray.length-1 +" = " + toString((FitnessMeanArray[FitnessMeanArray.length-1]/1000), 2)+ " seconds";
+ drawString(stringT, 195, 430, "#16150D");
+
+
+run("Add Image...", "image=CopyPlot x=134 y=454 opacity=100");
+
+
+
+
+setSlice(4);
+
+
+// Give Average times Camo Stats
+//------------------------------
+
+	setFont("Caldibri ", 30);
+	stringB= "                                                          ";
+drawString(stringB, 861 , 290, "#16150D");
+stringT= "Luminance Distance:";
+ drawString(stringT, 861 , 290, "#16150D");
+ 
+  setFont("Caldibri ", 24);
+			stringB= "                                                             ";
+		  stringT= "Distance of Mean Luminance.";
+		 drawString(stringB, 861 , 330, "#16150D");
+		 drawString(stringT, 861 , 330, "#16150D");
+		 
+		   stringT= "As distance 'decreases' camouflage improves.";
+		 drawString(stringB, 861 , 370, "#16150D");
+		 drawString(stringT,  861 ,370, "#16150D");
+		 
+			stringT= "Generation 0 mean = " + toString (Lum_MeanArray[0]);
+		 drawString(stringB, 861 , 410, "#16150D");
+		 drawString(stringT, 861 , 410, "#16150D");
+		 
+			 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Lum_MeanArray[FitnessMeanArray.length-1]);
+		 drawString(stringB, 861 , 450, "#16150D");
+		 drawString(stringT, 861 , 450, "#16150D");
+
+run("Add Image...", " image=LuminancePlot x=821 y=474 opacity=100");
+
+setSlice(4);
+
+//-------------------------------------------------
+// Show Final Menu
+//-------------------------------------------------
+selectImage("EndScreen");
+slide=2;
+setSlice(slide);
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+
+
+if(isOpen("Evolving")){
+close("Evolving");
+}
+
+if(isOpen("Analysing")){
+close("Analysing");
+}
+
+if(isOpen("Loading")){
+close("Loading");
+}
+
+
+previewGate = 0;
+downloadGate = 0;
+endGate = 0;
+
+
+
+wait(100);
+
+
+//TestPoint("");
+
+while(endGate==0){
+
+wait(400);
+
+slide=2;
+
+setSlice(slide);
+
+previewGate = 0;
+
+//BUTTON 1, Preview Results
+//-----------------------------------------
+
+
+	b1_x1= 386;
+	b1_y1= 478;
+
+	b1_x2= b1_x1 + 694;
+	b1_y2= b1_y1 + 156;
+	
+	
+//BUTTON 2, Download Results
+//-----------------------------------------
+
+
+	b2_x1= 386;
+	b2_y1= 688;
+
+	b2_x2= b2_x1 + 694;
+	b2_y2= b2_y1 + 156;
+	
+	
+//BUTTON 3, Exit
+//-----------------------------------------
+
+
+	b3_x1= 386;
+	b3_y1= 896;
+
+	b3_x2= b3_x1 + 694;
+	b3_y2= b3_y1 + 156;
+
+
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		previewGate = 1;
+	
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		downloadGate = 1;
+		
+		datafileDIR = getDirectory("Select the Folder you wish to download your results to.");
+		
+		if(File.exists(survivalDIR + "Data_Output.txt")){
+		File.copy(survivalDIR + "Data_Output.txt", datafileDIR + "Data_Output.txt");
+		}
+		
+		if(File.exists(survivalDIR+"Data_Output_" + FolderName + ".txt")){
+		File.copy(survivalDIR+"Data_Output_" + FolderName + ".txt", datafileDIR + "Data_Output_" + FolderName + ".txt");
+		}
+
+		}
+		
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		endGate = 1;
+		
+
+		}
+		
+
+		run("Select None");
+
+		}
+
+
+
+if(previewGate == 1) {
+
+				//BUTTON 1, Back to Menu
+				//-----------------------------------------
+
+
+					b1_x1= 952;
+					b1_y1= 902;
+
+					b1_x2= b1_x1 + 236;
+					b1_y2= b1_y1 + 152;
+					
+					
+				//BUTTON 2, Camo Settins
+				//-----------------------------------------
+
+
+					b2_x1= 212;
+					b2_y1= 902;
+
+					b2_x2= b2_x1 + 388;
+					b2_y2= b2_y1 + 152;
+					
+					
+					
+				//BUTTON 3, Luminance
+				//-----------------------------------------
+
+
+					b3_x1= 182;
+					b3_y1= 310;
+
+					b3_x2= b3_x1 + 448;
+					b3_y2= b3_y1 + 96;
+					
+					
+				//BUTTON 4, Pattern
+				//-----------------------------------------
+
+
+					b4_x1= 182;
+					b4_y1= 440;
+
+					b4_x2= b4_x1 + 448;
+					b4_y2= b4_y1 + 96;
+					
+					
+				//BUTTON 5, Colour
+				//-----------------------------------------
+
+
+					b5_x1= 182;
+					b5_y1= 580;
+
+					b5_x2= b5_x1 + 448;
+					b5_y2= b5_y1 + 96;
+					
+				//BUTTON 6, Disruption
+				//-----------------------------------------
+
+
+					b6_x1= 182;
+					b6_y1= 698;
+
+					b6_x2= b6_x1 + 448;
+					b6_y2= b6_y1 + 96;
+					
+					
+				
+				whileGate=0;
+
+				run("Select None");
+				
+				slide = 3;
+
+				while(whileGate==0){
+
+				wait(100);
+
+					selectImage("EndScreen");
+
+					setTool("point");
+					
+					setSlice(slide);
+
+						if(selectionType!=-1){
+
+						Roi.getCoordinates(xpoints, ypoints);
+						clickX=xpoints[0];
+						clickY=ypoints[0];
+
+						//Button 1
+						//-----------------
+						if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+						
+						whileGate=1;
+
+
+					
+						}
+						
+						//Button 2
+						//-----------------
+						if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+						if(slide==3){
+						slide=4;
+						}else{
+					
+						if(slide==4){
+						slide=3;
+						} 
+						}
+
+						}
+						
+						
+						//Button 3
+						//-----------------
+						if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+						if(slide==4){
+
+						stringT= "Luminance Distance:";
+						 
+					setFont("Caldibri ", 30);
+					stringB= "                                                          ";
+				drawString(stringB, 861 , 290, "#16150D");
+				 drawString(stringT, 861 , 290, "#16150D");
+				 
+				  setFont("Caldibri ", 24);
+							stringB= "                                                          ";
+						  stringT= "Distance of Mean Luminance.";
+						 drawString(stringB, 861 , 330, "#16150D");
+						 drawString(stringT, 861 , 330, "#16150D");
+						 
+						   stringT= "As distance 'decreases' camouflage improves.";
+						 drawString(stringB, 861 , 370, "#16150D");
+						 drawString(stringT,  861 ,370, "#16150D");
+						 
+							stringT= "Generation 0 mean = " + toString (Lum_MeanArray[0]);
+						 drawString(stringB, 861 , 410, "#16150D");
+						 drawString(stringT, 861 , 410, "#16150D");
+						 
+							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Lum_MeanArray[FitnessMeanArray.length-1]);
+						 drawString(stringB, 861 , 450, "#16150D");
+						 drawString(stringT, 861 , 450, "#16150D");
+
+				run("Add Image...", " image=LuminancePlot x=821 y=474 opacity=100");
+								
+						}
+
+						}
+						
+						
+					
+							//Button 4
+						//-----------------
+						if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+					
+						if(slide==4){
+						
+
+						stringT= "Contrast Difference:";
+						 
+					setFont("Caldibri ", 30);
+					stringB= "                                                          ";
+				drawString(stringB, 861 , 290, "#16150D");
+				 drawString(stringT, 861 , 290, "#16150D");
+				 
+				  setFont("Caldibri ", 24);
+							stringB= "                                                                 ";
+						  stringT= "Distance of Luminance StDev.";
+						 drawString(stringB, 861 , 330, "#16150D");
+						 drawString(stringT, 861 , 330, "#16150D");
+						 
+						   stringT= "As distance 'decreases' camouflage improves.";
+						 drawString(stringB, 861 , 370, "#16150D");
+						 drawString(stringT,  861 ,370, "#16150D");
+						 
+							stringT= "Generation 0 mean = " + toString (Pattern_MeanArray[0]);
+						 drawString(stringB, 861 , 410, "#16150D");
+						 drawString(stringT, 861 , 410, "#16150D");
+						 
+							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Pattern_MeanArray[FitnessMeanArray.length-1]);
+						 drawString(stringB, 861 , 450, "#16150D");
+						 drawString(stringT, 861 , 450, "#16150D");
+
+				run("Add Image...", " image=PatternPlot x=821 y=474 opacity=100");
+
+								
+						}
+
+						}
+						
+								//Button 5
+						//-----------------
+						if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+					
+						if(slide==4){
+						
+
+						stringT= "Colour Distance:";
+						 
+					setFont("Caldibri ", 30);
+					stringB= "                                                          ";
+				drawString(stringB, 861 , 290, "#16150D");
+				 drawString(stringT, 861 , 290, "#16150D");
+				 
+				  setFont("Caldibri ", 24);
+							stringB= "                                                                 ";
+						  stringT= "Distance of Mean Colour.";
+						 drawString(stringB, 861 , 330, "#16150D");
+						 drawString(stringT, 861 , 330, "#16150D");
+						 
+						   stringT= "As distance 'decreases' camouflage improves.";
+						 drawString(stringB, 861 , 370, "#16150D");
+						 drawString(stringT,  861 ,370, "#16150D");
+						 
+							stringT= "Generation 0 mean = " + toString (Colour_MeanArray[0]);
+						 drawString(stringB, 861 , 410, "#16150D");
+						 drawString(stringT, 861 , 410, "#16150D");
+						 
+							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Colour_MeanArray[FitnessMeanArray.length-1]);
+						 drawString(stringB, 861 , 450, "#16150D");
+						 drawString(stringT, 861 , 450, "#16150D");
+
+				run("Add Image...", " image=ColourPlot x=821 y=474 opacity=100");
+
+								
+						}
+
+						}
+							
+
+
+								//Button 6
+						//-----------------
+						if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+					
+						if(slide==4){
+						
+						
+						stringT= "GabRat Edge Disruption:";
+						 
+					setFont("Caldibri ", 30);
+					stringB= "                                                          ";
+				drawString(stringB, 861 , 290, "#16150D");
+				 drawString(stringT, 861 , 290, "#16150D");
+				 
+				  setFont("Caldibri ", 24);
+							stringB= "                                                                    ";
+						  stringT= "GabRat edge disruption measure.";
+						 drawString(stringB, 861 , 330, "#16150D");
+						 drawString(stringT, 861 , 330, "#16150D");
+						 
+						   stringT= "As disruption 'increases' camouflage improves.";
+						 drawString(stringB, 861 , 370, "#16150D");
+						 drawString(stringT,  861 ,370, "#16150D");
+						 
+							stringT= "Generation 0 mean = " + toString (GabRat_MeanArray[0]);
+						 drawString(stringB, 861 , 410, "#16150D");
+						 drawString(stringT, 861 , 410, "#16150D");
+						 
+							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(GabRat_MeanArray[FitnessMeanArray.length-1]);
+						 drawString(stringB, 861 , 450, "#16150D");
+						 drawString(stringT, 861 , 450, "#16150D");
+
+				run("Add Image...", " image=GabRatPlot x=821 y=474 opacity=100");
+
+								
+						}
+
+						}	
+						
+
+						
+
+				run("Select None");
+
+
+				}
+
+
+				}
+
+				}
+				
+
+}
+
+if(endGate == 1){
+
+
+if(downloadGate==1){
+
+setBatchMode(false);
+if(isOpen("blank")){
+selectImage("blank");
+close("\\Others");
+} else{
+close("*");
+}
+doCommand("CamoEvo Game");
+exit
+
+} else {
+
+slide=5;
+
+setSlice(slide);
+
+
+//BUTTON 1, Exit and Save
+//-----------------------------------------
+
+
+	b1_x1= 440;
+	b1_y1= 576;
+
+	b1_x2= b1_x1 + 598;
+	b1_y2= b1_y1 + 164;
+	
+	
+//BUTTON 2, Exit
+//-----------------------------------------
+
+
+	b2_x1= 440;
+	b2_y1= 820;
+
+	b2_x2= b2_x1 + 598;
+	b2_y2= b2_y1 + 164;
+
+
+whileGate=0;
+
+while(whileGate==0){
+wait(100);
+
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		whileGate=1;
+		
+		datafileDIR = getDirectory("Select the Folder you wish to download your results to.");
+		
+		if(File.exists(survivalDIR + "Data_Output.txt")){
+		File.copy(survivalDIR + "Data_Output.txt", datafileDIR + "Data_Output.txt");
+		}
+		
+		if(File.exists(survivalDIR+"Data_Output_" + FolderName + ".txt")){
+		File.copy(survivalDIR+"Data_Output_" + FolderName + ".txt", datafileDIR + "Data_Output_" + FolderName + ".txt");
+		}
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		whileGate=1;
+
+		}
+		
+		
+	run("Select None");
+
+		}
+
+
+
+}
+
+
+}
+
+setBatchMode(false);
+if(isOpen("blank")){
+selectImage("blank");
+close("\\Others");
+} else{
+close("*");
+}
+doCommand("CamoEvo Game");
+exit
+
+
+}
+
+}
+
+
+
+}
+//print("loop");
+}
+

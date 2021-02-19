@@ -1,0 +1,186 @@
+/*
+
+
+
+*/
+
+scaleStep = 1/pow(2,0.5);
+
+// Difference of 1.6=Laplacian of Gaussian
+g1 = 1;
+g2 = 1.6;
+
+minStep = 0.05;
+
+oID = getImageID();
+
+
+Dialog.create("DoG Save Path");
+	Dialog.addString("Path: ", " ");
+Dialog.show();
+
+savePath = Dialog.getString();
+
+
+g1 = "sigma=" + g1;
+g2 = "sigma=" + g2;
+
+nScales = 0;
+for(i=1; i>minStep; i=i*scaleStep)
+	nScales++;
+
+setBatchMode(true);
+
+
+//-----------------------------LIST ROIs-----------------------
+
+roiList = newArray();
+roiLocs = newArray();
+roiFullList = newArray();
+nROIs = roiManager("count");
+
+for(j=0; j<nROIs; j++){
+	roiManager("Select", j);
+	tStr = getInfo("selection.name");
+	roiFullList = Array.concat(roiFullList, tStr);
+	if(startsWith(tStr, "Scale Bar") == false){ // only measure ROIs which aren't scale bars
+		roiList = Array.concat(roiList, tStr);
+		roiLocs = Array.concat(roiLocs, j);
+	}
+}
+
+for(l=0; l<roiList.length; l++){
+
+selectImage(oID);
+
+roiManager("select", roiLocs[l]);
+
+
+row=nResults;
+setResult("Label", row, roiList[l]);
+
+
+sds = newArray(nScales);
+skews = newArray(nScales);
+ns = newArray(nScales);
+
+run("Duplicate...", " ");
+run("Make Inverse");
+run("Set...", "value=0");
+run("Make Inverse");
+roiManager("add");
+
+w=getWidth();
+h=getHeight();
+
+
+run("Select None");
+masterEgg = getImageID();
+rename(roiList[l] + "_DoG");
+run("Fire");
+
+k=0;
+dMax = 0;
+dMin = 0;
+
+for(i=1; i>minStep; i=i*scaleStep){
+	selectImage(masterEgg);
+	setSlice(1);
+	run("Select None");
+
+	ts = "x=" + i + " y="+ i + " interpolation=None average create";
+	run("Scale...", ts);
+	rename("g1");
+	scaledEgg1 = getImageID();
+
+	roiManager("select", roiManager("count")-1 );
+	ts = "x=" + i + " y="+ i;
+	run("Scale... ", ts);
+	run("Enlarge...", "enlarge=-1");
+	run("Crop");
+
+	run("Duplicate...", " ");
+	rename("g2");
+	scaledEgg2 = getImageID();
+
+	run("Gaussian Blur ROI", g2);
+
+	selectImage(scaledEgg1);
+	run("Gaussian Blur ROI", g1);
+
+	imageCalculator("Subtract", "g1","g2");
+
+	selectImage(scaledEgg1);
+
+	getStatistics(area, mean, min, max, sd);
+
+	if(min < dMin)
+		dMin = min;
+	if(max > dMax)
+		dMax = max;
+
+	setMinAndMax(dMin, dMax);
+	setBatchMode("show");
+
+	w=getWidth();
+	h=getHeight();
+	//for(j=0; j<verticalRes; j++)
+	for(y=0; y<h; y++)
+	for(x=0; x<w; x++)
+	if(selectionContains(x,y) == 1){
+		sds[k] += pow(getPixel(x,y)-mean,2); // sum of squares
+		skews[k] += pow(getPixel(x,y)-mean,3); // sum of cubes
+		ns[k] = ns[k]+1;
+	}
+
+	sds[k] = pow(sds[k]/(ns[k]-1),0.5);
+	skews[k] = (ns[k] * skews[k]) / ( (ns[k]-1)*(ns[k]-2)*pow(sds[k],3)  );
+	
+	k++;
+
+	run("Copy");
+	close();
+	selectImage(scaledEgg2);
+	close();
+
+	selectImage(masterEgg);
+	setSlice(nSlices);
+	run("Add Slice");
+	run("Paste");
+
+	//Array.show(sds);
+}//i
+
+k=0;
+for(i=1; i>minStep; i=i*scaleStep){
+	//for(j=0; j<verticalRes; j++)
+		setResult("Energy_s"+i, row, sds[k]);
+	k++;
+}
+
+k=0;
+for(i=1; i>minStep; i=i*scaleStep){
+	//for(j=0; j<verticalRes; j++)
+		setResult("Skew_s"+i, row, skews[k]);
+	k++;
+}
+
+
+roiManager("select", roiManager("count")-1);
+roiManager("delete");
+
+selectImage(masterEgg);
+setSlice(2);
+//run("Fire");
+//setMinAndMax(dMin, dMax);
+
+if(savePath != " "){
+	ts = savePath + roiList[l] + "_DoG.tif";
+	saveAs("Tiff", ts);
+
+}
+//setBatchMode("show");
+close();
+
+}//l
+

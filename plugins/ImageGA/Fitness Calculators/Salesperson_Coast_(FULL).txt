@@ -1,0 +1,421 @@
+setBatchMode("true");
+
+
+//__________________________________________________________________
+
+//=========================================================
+/*
+FITNESS PRE-CHECKER (Recommended for all calculators )
+_____________________________________________________
+
+Counts the number of survival tables in the last directory used by ImageJ
+
+ NOTE: the algorithim will always premake a results table.
+
+
+*/
+//=========================================================
+
+
+
+settingsFilePath = getDirectory("plugins") + "Tools/PopulationLocation.txt";
+
+
+if(File.exists(settingsFilePath) == 1){
+	settingsString=File.openAsString(settingsFilePath);	// open txt data file
+	defaultSettings=split(settingsString, "\n");
+} 
+
+
+//print(defaultSettings[0]);
+
+CheckDirectory = defaultSettings[0];
+
+GeneratArray = newArray("none");
+
+GeneratList  =  getFileList(CheckDirectory);
+
+//Array.show(GeneratList);
+
+for(i=0; i<GeneratList.length; i++) { // list all .txt files
+
+	if(endsWith(GeneratList[i], "_survival.txt")==1){
+		GeneratArray = Array.concat(GeneratArray, GeneratList[i]);
+	}
+
+
+}
+
+
+ArrayLeng = lengthOf(GeneratArray);
+
+//print (ArrayLeng);
+
+//Array.show(GeneratArray);
+
+
+csv = ".csv";
+tif = ".tif";
+txt = ".txt";
+png = ".png";
+
+
+// Index
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+  function index(a, value) {
+      for (i=0; i<a.length; i++)
+          if (a[i]==value) return i;
+      return -1;
+  }
+
+// Obtain SubArray
+//---------------------------------------------------
+// Allows you to obtain a SubArray of a given Name and Length, where a is the array and b is the original number of rows.
+
+ function subArray(a, value, b) {
+	IndexLab = index(a, value);
+	Start = IndexLab + 1;
+	End = IndexLab  + b;
+	//print("startIndex: "+Start);
+	//print("endIndex: "+End);
+	return Array.slice(a, Start, End);
+}
+
+
+//--------------------------------------------------------------------------------------------
+
+GenNumber = ArrayLeng -1;
+GenNum = CheckDirectory + "generation_" + GenNumber + txt;
+GenName = "generation_" + GenNumber + txt;
+SurvGenNum= CheckDirectory + "generation_" + GenNumber +"_survival" + txt;
+
+//------------------------------------
+//Load Current Generation
+//------------------------------------
+
+if(File.exists(GenNum) == 1){
+GenerationString=File.openAsString(GenNum);	// open txt data file
+GenerationRows=split(GenerationString, "\n");
+
+	Column_Titles = GenerationRows[0];
+	CT=split(Column_Titles, "\t");
+	CoastNames=Array.deleteValue(CT, "ID");
+	CoastNames=Array.deleteValue(CoastNames, "Parent1");
+	CoastNames=Array.deleteValue(CoastNames, "Parent2");
+	F = lengthOf(CT);
+	RouteLeng = F;
+	
+VarLeng = GenerationRows.length-1;
+ColumnLength = VarLeng;
+
+Genotype_IDs = newArray();
+Col1 = newArray();
+for(X=1; X<GenerationRows.length; X++){
+Temp = split(GenerationRows[X], "\t");
+Genotype_IDs = Array.concat(Genotype_IDs, Temp);
+Col1 = Array.concat(Col1, Temp[0]);
+}
+//Array.show(Genotype_IDs, Col1);
+
+
+
+
+
+//------------------------------------------------
+// Make Pattern Directory
+//-------------------------------------------------
+fold = "SalespersonRoutes";
+PatternPath = CheckDirectory + fold;
+File.makeDirectory(PatternPath );
+
+
+
+
+	//Open UK Map
+//===========================
+
+photoFilePath = getDirectory("plugins") + "ImageGA/Fitness Calculators/Salesperson_Coast/coastal_sites.png";
+
+open(photoFilePath);
+
+
+
+	//Set Coastal Sites
+//============================
+
+Penzance = newArray("Penzance", 93, 885);
+
+StIves = newArray("StIves", 100, 872);
+
+Newquay = newArray("Newquay",129, 842);
+
+BurhamonSea = newArray("BurhamOnSea", 321, 735);
+
+Minehead = newArray("Minehead", 275, 738);
+
+Lifracombe = newArray("Lifracombe", 218, 741);
+
+BurnhamOnSea = newArray("BurnhamOnSea", 322, 735);
+
+WestonsuperMare= newArray ("WestonSuperMare", 325, 710);
+
+Barry= newArray("Barry", 296, 702);
+
+Porthcawl = newArray("Porthcawl", 259, 691);
+
+Conwy = newArray("Conwy", 242, 446);
+
+Prestalyn = newArray("Prestalyn", 282, 441);
+
+Southport = newArray("Southport", 309, 398);
+
+Greater_Blackpool = newArray("Greater_Blackpool", 314, 360);
+
+Heysham = newArray ("Heysham", 331, 332);
+
+Greater_Ayr = newArray("Greater_Ayr", 165, 113);
+
+Duncoon = newArray ("Duncoon", 135, 47);
+
+Whitley_Bay = newArray("Whitley_Bay", 448, 192);
+
+Whitby = newArray("Whitby", 527, 270);
+
+Scarborough = newArray("Scarborough", 540, 301);
+
+Bridlington = newArray("Bridlington", 554, 335);
+
+Skegness = newArray("Skegness", 601, 461);
+
+Greater_Yarmouth = newArray("Greater_Yarmouth", 715, 543);
+
+Lowestoft = newArray("Lowestoft", 714, 562);
+
+Clacton = newArray("Clacton", 674, 639);
+
+SouthendonSea = newArray("SouthendOnSea", 640, 681);
+
+Herne_Bay = newArray("Herne_Bay", 678, 706);
+
+Thanet = newArray("Thanet", 697, 707);
+
+Deal = newArray("Deal", 692, 729);
+
+Hythe = newArray("Hythe", 666, 749);
+
+Bexhill = newArray("Bexhill", 627, 771);
+
+Eastbourne = newArray("Eastbourne", 612, 785);
+
+Greater_Brighton = newArray("Greater_Brighton", 576, 778);
+
+Greater_Worthing = newArray("Greater_Worthing", 549, 780);
+
+Bogner_Regis = newArray("Bogner_Regis", 526, 785);
+
+Greater_Bourneworth = newArray("Greater_Bourneworth", 415, 796);
+
+Swanage = newArray("Swanage", 406, 814);
+
+Weymouth = newArray("Weymouth", 363, 813);
+
+Sidmouth = newArray("Sidmouth", 298, 800);
+
+Exmouth = newArray("Exmouth", 284, 809);
+
+Teigmouth = newArray("Teigmouth", 272, 817);
+
+Torbay = newArray("Torbay", 268, 840);
+
+Falmouth = newArray("Falmouth", 133, 877);
+
+
+// Create Array of All Coasts
+///===============================
+CoastsArray = Array.concat(Penzance,StIves,Newquay,BurhamonSea,Minehead,Lifracombe,WestonsuperMare,Barry,Porthcawl,Conwy,Prestalyn,Southport,Greater_Blackpool,Heysham,Greater_Ayr,Duncoon,Whitley_Bay,Whitby,Scarborough,Bridlington,Skegness,Greater_Yarmouth,Lowestoft,Clacton,SouthendonSea,Herne_Bay,Thanet,Deal,Hythe,Bexhill,Eastbourne,Greater_Brighton,Greater_Worthing,Bogner_Regis,Greater_Bourneworth,Swanage,Weymouth,Sidmouth,Exmouth,Teigmouth,Torbay,Falmouth);
+
+
+
+
+//		Get Coast Order
+//================================
+FitnessArray=newArray(ColumnLength);
+
+
+for ( k=0; k<ColumnLength; k++ ) { 
+
+CoastOrderArray = subArray(Genotype_IDs, Col1[k], F-2);
+
+CoastOrderArray2 = Array.rankPositions(CoastOrderArray);
+CoastOrderArray2  = Array.concat(CoastOrderArray2, CoastOrderArray2[0]);
+CoastOrderArray3=newArray();
+
+for (i=0; i<CoastOrderArray2.length; i++){
+Temp=CoastOrderArray2[i];
+Temp=CoastNames[Temp];
+CoastOrderArray3=Array.concat(CoastOrderArray3,Temp);
+}
+//Array.show(CoastOrderArray2, CoastOrderArray3);
+
+//print(VarLeng);
+
+
+//	Get Fitness
+//===============================
+
+RouteLength = 0;
+
+	//	RouteLength
+	//------------------------------------------------------
+
+	for (f=0; f<CoastOrderArray2.length-1; f++){
+
+	Coast1a = CoastOrderArray2[f];
+	Coast2a = CoastOrderArray2[f+1];
+
+	Coast1b = CoastNames[Coast1a];
+	Coast2b = CoastNames[Coast2a];
+	
+	
+	Coast1 = subArray(CoastsArray, Coast1b, 3);
+	Coast2 =  subArray(CoastsArray, Coast2b, 3);
+	
+
+
+	route = Array.concat(Coast1,Coast2);
+	
+	
+	
+	a1 =  Math.sqr(parseFloat(route[0]) - parseFloat(route[2]) );
+
+	b1 =  Math.sqr(parseFloat(route[1]) - parseFloat(route[3]) );
+
+	Length = Math.sqrt (  a1 + b1 );  
+
+
+
+	RouteLength = RouteLength + Length;
+	
+
+	
+			}
+
+
+	
+	RouteSpeed = -1 * RouteLength;	
+
+	FitnessArray[k] = RouteSpeed;
+	
+	wait(10);
+	}
+	
+
+
+IDArray = Array.copy(Col1);
+
+surivalString1 = Array.concat("ID", "fitness");
+surivalString = String.join(surivalString1, "\t");
+File.append(surivalString, SurvGenNum);
+
+for(i=0; i< IDArray.length; i++){
+
+surivalString1 = Array.concat(IDArray[i], FitnessArray[i]);
+
+surivalString = String.join(surivalString1, "\t");
+
+File.append(surivalString, SurvGenNum);
+
+}
+
+//File.close(dataFile);
+
+
+
+
+//PRINT The BEST Salesperson
+//-----------------------------------------------------
+
+
+//Get the best Route
+
+FitnessRanking = Array.rankPositions(FitnessArray);
+
+Fittest = lengthOf(FitnessRanking)-1;
+
+FittestID = FitnessRanking[Fittest];
+
+FittestID = IDArray[FittestID];
+
+k = FittestID;
+
+CoastOrderArray = subArray(Genotype_IDs, FittestID, F-2);
+
+CoastOrderArray2 = Array.rankPositions(CoastOrderArray);
+CoastOrderArray2 = Array.concat(CoastOrderArray2, CoastOrderArray2[0]);
+
+
+//	Get Fitness
+//===============================
+
+	//	RouteLength
+	//------------------------------------------------------
+
+	for (f=0; f<CoastOrderArray2.length-1; f++){
+	
+	label="route_"+f;
+
+	Coast1a = CoastOrderArray2[f];
+
+	Coast2a = CoastOrderArray2[f+1];
+
+	Coast1b = CoastNames[Coast1a];
+
+	Coast2b = CoastNames[Coast2a];
+	
+	
+	Coast1 = subArray(CoastsArray, Coast1b, 3);
+
+	Coast2 =  subArray(CoastsArray, Coast2b, 3);
+	
+	route = Array.concat(Coast1,Coast2);
+
+	makeLine(route[0],route[1],route[2],route[3]);
+
+	roiManager("Add");
+	roiManager("select", roiManager("count")-1  );
+	roiManager("rename", label);
+
+
+	}
+
+
+	roiManager("Select", Array.getSequence(roiManager("count")));
+	roiManager("XOR");
+	roiManager("Add");
+	roiManager("select", roiManager("count")-1  );
+	roiManager("rename", "Full Path");
+
+
+selectWindow("coastal_sites.png");
+roiManager("select", roiManager("count")-1  );
+run("Fill", "slice");
+pat = "\\" + "Fittest Route_Gen" + GenNumber + tif;
+PatternPath = CheckDirectory + fold + pat;
+saveAs("Tiff", PatternPath);
+
+close("*");
+
+roiManager("Deselect");
+
+roiManager("Delete");
+
+
+
+
+
+}
+
+
+setBatchMode("false");

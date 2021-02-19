@@ -1,0 +1,2719 @@
+		TargetType = "Target_Egg";
+		GenerationLength = 5;
+		PopSize = 24;
+		NumSlide = 1;
+		TimeOutTime= 45000;
+
+
+
+PopLocal = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
+
+setBatchMode(false);
+
+if(isOpen("blank")){
+selectImage("blank");
+close("\\Others");
+} else{
+close("*");
+}
+
+setBatchMode(true);
+
+
+TutorialDoneDirect = getDirectory("plugins") + "2 CamoReq/Tutorial_Check.txt";
+
+
+if(File.exists(TutorialDoneDirect)){
+TutorialDoneCheck=File.openAsString( TutorialDoneDirect);
+TutorialDoneCheck=split(TutorialDoneCheck,"\n");
+TutorialDoneCheck=TutorialDoneCheck[0];
+} else {
+TutorialDoneCheck=0;
+}
+
+
+if(!isOpen("Results")){
+newImage("dummy", "8-bit black", 1, 1, 1);
+run("Clear Results");
+run("Measure");
+selectWindow("Results");
+getLocationAndSize(x, y, width, height);
+Table.setLocationAndSize((screenWidth/2)-(width/2), (screenHeight/2)-(height/2),2,2);
+print("1");
+selectWindow("Log");
+Table.setLocationAndSize((screenWidth/2)-(width/2), (screenHeight/2)-(height/2),2,2);
+close("dummy");
+}
+
+//----------------------------------------------------------------------------------------------------------------
+// 0) Setting Up Interface
+//----------------------------------------------------------------------------------------------------------------
+
+//--------------------------------------------
+//Create False Full Screen
+//========================
+
+if(!isOpen("blank")){
+newImage("blank", "8-bit black", screenWidth+200, screenHeight+20, 1);
+setBatchMode("Show");
+setLocation(screenWidth/2, 0, screenWidth, screenHeight);
+getLocationAndSize(x, y, width, height);
+setLocation(x-(width/2), y, width, height);
+}
+
+
+
+selectImage("blank");
+run("Select None");
+
+//--------------------------------------------
+//Open Loading Animation
+//========================
+
+
+
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+LoadingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Loading/01.jpg";
+} else {
+LoadingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Loading/";
+}
+
+
+if(!File.exists(LoadingDirectory)){
+setBatchMode(false);
+close("*");
+error("loading screen img files, missing, reinstall suggested");
+}
+
+if(!isOpen("loading")){
+run("Image Sequence...", "open=[&LoadingDirectory] sort");
+selectImage("Loading");
+setBatchMode("Show");
+getLocationAndSize(x, y, width, height);
+
+screenScale =  850/(screenWidth/2);
+
+setLocation((screenWidth/2), 0 ,  850*screenScale,  850*screenScale); // Hopefully this scale works for other PCs.
+setBatchMode(true);
+
+getLocationAndSize(x, y, width, height);
+setLocation(x-(width/2), y*screenScale, width, height);
+run("Maximize");
+getLocationAndSize(x, y, width, height);
+
+
+xScale=x; // Get Game Scale
+yScale=y;
+wScale=width;
+hScale=height;
+
+}
+
+//--------------------------------------------
+//Run Loading Animation
+//========================
+
+selectImage("Loading");
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+StartupDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Startup/01_Welcome.jpg";
+} else {
+StartupDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Startup/";
+}
+
+if(!File.exists(StartupDirectory)){
+setBatchMode(false);
+close("*");
+error("startup screen img files, missing, reinstall suggested");
+}
+
+if(!isOpen("Startup")){
+run("Image Sequence...", "open=[&StartupDirectory] sort");
+}
+
+
+//--------------------------------------------
+//Open Evolving Animation
+//========================
+
+
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/01.jpg";
+} else {
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/";
+}
+
+
+
+if(!File.exists(StartupDirectory)){
+setBatchMode(false);
+close("*");
+error("Evolving screen img files, missing, reinstall suggested");
+}
+
+if(!isOpen("Evolving")){
+run("Image Sequence...", "open=[&EvolvingDirectory] sort");
+}
+
+
+//--------------------------------------------
+//Open Startup Screen
+//========================
+
+
+selectImage("Startup");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+
+selectImage("Loading");
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 1) Use Interface
+//----------------------------------------------------------------------------------------------------------------
+
+selectImage("Startup");
+
+//--------------------------------------------
+// Slide 1, Welcome
+//========================
+
+slide=1; // Determines Slice 
+
+run("Select None");
+
+
+	
+	
+	
+	
+	
+
+//----------------------------------------
+
+selectImage("Startup");
+
+selectImage("Loading");
+doCommand("Stop Animation");
+setBatchMode("Hide");
+
+run("Select None");
+
+startGate=0;
+
+while(startGate==0){
+
+
+//BUTTON 1 Tutorial
+//-----------------------------------------
+
+
+	b1_x1= 386;
+	b1_y1= 388;
+
+	b1_x2= b1_x1 + 696;
+	b1_y2= b1_y1 + 152;
+	
+	
+
+//BUTTON 2 New Game
+//-----------------------------------------
+
+
+	b2_x1= 386;
+	b2_y1= 564;
+
+	b2_x2= b2_x1 + 696;
+	b2_y2= b2_y1 + 152;
+
+
+//BUTTON 3 Load Game
+//-----------------------------------------
+
+
+	b3_x1= 386;
+	b3_y1= 740;
+
+	b3_x2= b3_x1 + 696;
+	b3_y2= b3_y1 + 152;
+	
+
+
+//BUTTON 4 Exit Game
+//-----------------------------------------
+
+
+	b4_x1= 386;
+	b4_y1= 900;
+
+	b4_x2= b4_x1 + 696;
+	b4_y2= b4_y1 + 152;
+
+	tutorialGate=0;
+
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX< b1_x2   &&   clickY> b1_y1 &&  clickY< b1_y2) {
+
+		tutorialGate=1;
+		pauseGate =1;
+		startGate=0;
+
+		}
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX< b2_x2   &&   clickY> b2_y1 &&  clickY< b2_y2) {
+
+		tutorialGate=0;
+		pauseGate =1;
+		startGate=1;
+		oldFileGate=0;
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX< b3_x2   &&   clickY> b3_y1 &&  clickY< b3_y2) {
+
+		tutorialGate=0;
+		pauseGate =1;
+		startGate=1;
+		oldFileGate=1;
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX< b4_x2   &&   clickY> b4_y1 &&  clickY< b4_y2) {
+
+		close("*");
+		exit
+
+		}
+
+run("Select None");
+		}
+
+
+run("Select None");
+
+
+if(tutorialGate==1){
+
+
+// Run the Tutorial
+//--------------------------------------------
+
+
+selectImage("Loading");
+
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+selectImage("Startup");
+setBatchMode("Hide");
+
+
+
+TutorialDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Tutorial/01.jpg";
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+TutorialDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Tutorial/01.jpg";
+} else {
+TutorialDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Tutorial/";
+}
+
+
+
+if(!File.exists(TutorialDirectory)){
+setBatchMode(false);
+close("*");
+error("startup screen img files, missing, reinstall suggested");
+}
+
+
+run("Image Sequence...", "open=[&TutorialDirectory] sort");
+
+
+
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+
+selectImage("Loading");
+setBatchMode("Hide");
+
+
+
+
+//BUTTON 1, Back
+//-----------------------------------------
+
+	b1_x1= 328;
+	b1_y1=  837;
+
+	b1_x2= b1_x1 +  240;
+	b1_y2= b1_y1 +  204;
+
+	
+
+//BUTTON 2, Next
+//-----------------------------------------
+
+	b2_x1= 909;
+	b2_y1=  837;
+
+	b2_x2= b2_x1 +  240;
+	b2_y2= b2_y1 +  204;
+
+
+
+//BUTTON 3, Folder 3
+//-----------------------------------------
+
+	b3_x1= 366;
+	b3_y1 = 717;
+
+	b3_x2 = b3_x1 + 746;
+	b3_y2 = b3_y1 + 242;
+
+
+
+whileGate=0;
+tutorialEndGate=0;
+
+
+run("Select None");
+
+setTool("point");
+
+
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+selectImage("Tutorial");
+
+		
+		if(selectionType!=-1){
+
+		tutorialEndGate=0;
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+		
+		sliceNum = getSliceNumber();
+	
+
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2 ) {
+		
+		
+		sliceNum = getSliceNumber();
+		
+		if(sliceNum == nSlices){
+		whileGate=1;
+		tutorialEndGate=1;
+		}
+
+		
+			run("Select None");
+		}
+
+
+
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2 && tutorialEndGate==0) {
+
+		whileGate=0;
+		tutorialEndGate=0;
+		
+		sliceNum = getSliceNumber();
+		
+		if(sliceNum != nSlices){
+		setSlice(sliceNum +1);
+		}
+			run("Select None");
+		}
+		
+		
+		
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2 && tutorialEndGate==0) {
+
+		whileGate=0;
+		tutorialEndGate=0;
+		
+		sliceNum = getSliceNumber();
+		
+		if(sliceNum != 1){
+		setSlice(sliceNum -1);
+		}
+		
+		}
+		
+		
+
+
+		
+		run("Select None");
+		}
+
+	
+
+
+wait(400);
+}
+
+
+
+selectImage("Startup");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+
+close("Tutorial");
+
+dataFile = File.open(TutorialDoneDirect);
+
+	print(dataFile, 1);
+
+	File.close(dataFile);
+
+
+} 
+wait(100);
+}
+	
+
+
+
+
+if(oldFileGate==1){
+
+//--------------------------------------------
+// Slide 4, Choose a Folder
+//========================
+
+slide=4; // Determines Slice 
+
+
+if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+
+
+
+FilesArray = newArray(400);
+
+for(i=0; i<FilesArray.length; i++){
+FilesArray[i]="Empty";
+}
+
+SaveFiles = getFileList(getDirectory("plugins")+"1 CamoEvo/Population/");
+
+
+
+for(i=0; i<SaveFiles.length; i++){
+temp=SaveFiles[i];
+temp=split(temp,"//");
+temp=temp[0];
+
+FilesArray[i]= temp;
+}
+
+
+updateCheck = 1;
+FileChooseGate = 0;
+
+FolderPage = 0;
+
+whileGate=0;
+indexChoice=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+
+
+if(updateCheck == 1){
+//BUTTON 1, Folder 1
+//-----------------------------------------
+
+	b1_x1= 203;
+	b1_y1= 658;
+
+	b1_x2= 203 + 228;
+	b1_y2= 658 + 162;
+
+N= 1 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b1_x1+20, b1_y2-50, "black");
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("Bahnschrift SemiBold Condensed", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b1_x1+20, b1_y2-50);
+
+
+
+
+//BUTTON 2, Folder 2
+//-----------------------------------------
+
+	b2_x1= 488;
+	b2_y1= 658;
+
+	b2_x2= 488 + 228;
+	b2_y2= 658 + 162;
+
+N=2 + FolderPage;
+
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b2_x1+20, b2_y2-50, "black");
+	
+	
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b2_x1+20, b2_y2-50);
+
+
+//BUTTON 3, Folder 3
+//-----------------------------------------
+
+	b3_x1= 770;
+	b3_y1= 658;
+
+	b3_x2= 770 + 228;
+	b3_y2= 658 + 162;
+
+N=3 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b3_x1+20, b3_y2-50, "black");
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b3_x1+20, b3_y2-50);
+
+//BUTTON 4, Folder 4
+//-----------------------------------------
+
+	b4_x1= 1052;
+	b4_y1= 658;
+
+	b4_x2= 1052 + 228;
+	b4_y2= 658 + 162;;
+	
+N=4 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b4_x1+20, b4_y2-50, "black");
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b4_x1+20, b4_y2-50);
+
+//BUTTON 5, Folder 5
+//-----------------------------------------
+
+
+	b5_x1= 203;
+	b5_y1= 883;
+
+	b5_x2= 203 + 228;
+	b5_y2= 883 + 162;
+
+N=5 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover;
+	stringB= "                                 ";
+	drawString(stringB, b5_x1+20, b5_y2-50, "black");
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b5_x1+20, b5_y2-50);
+
+
+//BUTTON 6, Folder 6
+//-----------------------------------------
+
+
+	b6_x1= 485;
+	b6_y1= 886;
+
+	b6_x2= 485 + 228;
+	b6_y2= 886 + 162;
+
+N=6 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b6_x1+20, b6_y2-50, "black");
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b6_x1+20, b6_y2-50);
+
+
+//BUTTON 7, Folder 7
+//-----------------------------------------
+
+	b7_x1= 770;
+	b7_y1= 883;
+
+	b7_x2= 770 + 228;
+	b7_y2= 883 + 162;
+
+N=7 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b7_x1+20, b7_y2-50, "black");
+
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b7_x1+20, b7_y2-50);
+
+//BUTTON 8, Folder 8
+//-----------------------------------------
+
+
+	b8_x1= 1049;
+	b8_y1= 880;
+
+	b8_x2= 1049 + 228;
+	b8_y2= 880 + 162;
+
+N=8 + FolderPage;
+
+	setColor( "black"); // Add in Black Cover
+	stringB= "                                 ";
+	drawString(stringB, b8_x1+20, b8_y2-50, "black");
+
+
+if(FilesArray[N-1] != "Empty"){
+
+  setColor(255,255, 255);
+
+} else {
+
+  setColor(255, 40, 40);
+
+}
+
+
+  setFont("SansSerif", 22, "bold");
+
+  stringT= toString(N)+") "+ FilesArray[N-1];
+
+  drawString(  stringT, b8_x1+20, b8_y2-50);
+  
+  
+ 
+//BUTTON 9, Go Back
+//-----------------------------------------
+	b9_x1= 85;
+	b9_y1= 816;
+
+	b9_x2= b9_x1 + 90;
+	b9_y2= b9_y1 + 98;
+
+
+ //BUTTON 10, Go Forward
+//-----------------------------------------
+	b10_x1= 1307;
+	b10_y1= 816;
+
+	b10_x2= b10_x1 + 90;
+	b10_y2= b10_y1 + 98;
+	
+	
+  
+ updateCheck = 0;
+ }
+  
+
+
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		
+		indexChoice=0+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+		
+
+		}
+
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+	
+		indexChoice=1+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+		
+		
+
+		}
+		
+
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+	
+		indexChoice=2+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+		
+		
+		}
+		
+
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		
+		indexChoice=3+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+		
+		
+		}
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		
+		indexChoice=4+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+		
+		
+		}
+		
+		//Button 6
+		//-----------------
+		if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+		
+		indexChoice=5+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+
+		}
+		
+		//Button 7
+		//-----------------
+		if( clickX > b7_x1   &&    clickX < b7_x2   &&   clickY > b7_y1 &&  clickY < b7_y2) {
+
+		
+		indexChoice=6+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+
+		}
+		
+		
+		//Button 8
+		//-----------------
+		if( clickX > b8_x1   &&    clickX < b8_x2   &&   clickY > b8_y1 &&  clickY < b8_y2) {
+
+		
+		indexChoice=7+FolderPage;
+		if(FilesArray[indexChoice] != "Empty"){
+		whileGate=1;
+		}
+
+		}
+		
+		//Button 9
+		//-----------------
+		if( clickX > b9_x1   &&    clickX < b9_x2   &&   clickY > b9_y1 &&  clickY < b9_y2) {
+
+		FolderPage = FolderPage-8;
+		if(FolderPage<0){
+		FolderPage=0;
+		}
+		
+		updateCheck=1;
+
+		}
+		
+		//Button 10
+		//-----------------
+		if( clickX > b10_x1   &&    clickX < b10_x2   &&   clickY > b10_y1 &&  clickY < b10_y2) {
+
+		FolderPage = FolderPage+8;
+
+		}
+		updateCheck=1;
+		
+		
+
+		run("Select None");
+		}
+
+
+
+
+}
+  
+ 
+
+
+
+temp = FilesArray[indexChoice];
+
+priorFolderChoice = "1 CamoEvo/Population/" + temp  + "/";
+
+dataFile = File.open(PopLocal);
+print(dataFile,  priorFolderChoice );
+File.close(dataFile);
+
+  
+//--------------------------------------------
+//Run Loading Animation
+//========================
+
+selectImage("Loading");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+selectImage("Startup");
+setBatchMode("Hide");
+ 
+ 
+
+//--------------------------------------------
+//Transition to Game
+//========================
+  
+  
+ run("Camo Evolution Game");
+  
+  
+
+
+
+} else { // If new game is selected, create game setup.
+
+//--------------------------------------------
+// Slide 5, Upload Photos
+//========================
+
+slide=5; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+//BUTTON 1, Folder 1
+//-----------------------------------------
+
+	b1_x1= 540;
+	b1_y1= 713;
+
+	b1_x2=  540 + 400;
+	b1_y2= 713 + 208;
+
+repeatCheck=1;
+while(repeatCheck==1){
+
+whileGate=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		whileGate=1;
+
+		}
+
+		run("Select None");
+		}
+
+
+
+
+}
+
+
+backgroundPhotosDIR = getDirectory("Select photo folder you wish to use.");
+
+CountCheck = getFileList(backgroundPhotosDIR);
+CountCheck2=newArray();
+
+for(i=0; i<CountCheck.length; i++){
+if(endsWith(CountCheck[i], ".jpg") || endsWith(CountCheck[i], ".png") || endsWith(CountCheck[i], ".tif")){
+CountCheck2=Array.concat(CountCheck2,CountCheck[i]);
+}
+}
+
+if(CountCheck2.length==0){
+repeatCheck=1;
+waitForUser("You need to select a folder with .png, .jpg or .tif images");
+} else {
+repeatCheck=0;
+
+}
+
+
+}
+
+//--------------------------------------------
+// Slide 6, Stimuli
+//========================
+
+slide=6; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+
+//BUTTON 1, Targets
+//-----------------------------------------
+
+	b1_x1= 169;
+	b1_y1= 594;
+
+	b1_x2= b1_x1 + 344;
+	b1_y2= b1_y1 + 258;
+
+
+
+
+
+
+//BUTTON 2, Animals
+//-----------------------------------------
+
+	b2_x1= 568;
+	b2_y1= 766;
+
+	b2_x2=  b2_x1 + 344;
+	b2_y2= b2_y1+ 258;
+
+	
+	
+
+//BUTTON 3, Creator
+//-----------------------------------------
+
+	b3_x1= 936;
+	b3_y1= 598;
+
+	b3_x2= b3_x1 + 344;
+	b3_y2= b3_y1 + 258;
+	
+	
+	
+FunGate=0;
+whileGate=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		FunGate=0;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+
+		FunGate=1;
+		whileGate=1;
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		FunGate=2;
+		whileGate=1;
+
+		}
+
+		
+		
+
+
+
+	run("Select None");
+
+		}
+
+
+
+}
+	
+	
+	
+if(FunGate==0){
+
+//--------------------------------------------
+// Slide 7, Targets
+//========================
+
+slide=7; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+//BUTTON 1, Triangle
+//-----------------------------------------
+
+	b1_x1= 148;
+	b1_y1= 672;
+
+	b1_x2= b1_x1 + 286;
+	b1_y2= b1_y1 + 174;
+	
+	
+//BUTTON 2, Circle
+//-----------------------------------------
+
+	b2_x1= 480;
+	b2_y1= 827;
+
+	b2_x2= b2_x1 + 209;
+	b2_y2= b2_y1 + 208;
+	
+
+//BUTTON 3, Tear
+//-----------------------------------------
+
+	b3_x1= 743;
+	b3_y1= 685;
+
+	b3_x2= b3_x1 + 107;
+	b3_y2= b3_y1 + 214;
+	
+
+//BUTTON 4, Egg
+//-----------------------------------------
+
+	b4_x1= 950;
+	b4_y1= 821;
+
+	b4_x2= b4_x1 + 160;
+	b4_y2= b4_y1 + 210;
+	
+
+//BUTTON 5, Oval
+//-----------------------------------------
+
+	b5_x1= 1195;
+	b5_y1= 685;
+
+	b5_x2= b5_x1 + 170;
+	b5_y2= b5_y1 + 210;
+
+
+
+
+whileGate=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		TargetType="Target_Triangle";
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		TargetType="Target_Circle";
+		whileGate=1;
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		TargetType="Target_Tear";
+		whileGate=1;
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		TargetType="Target_Egg";
+		whileGate=1;
+
+		}
+		
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		TargetType="Target_Oval";
+		whileGate=1;
+
+		}
+		
+
+	run("Select None");
+
+		}
+
+
+
+
+}
+
+
+
+
+} 
+
+
+if(FunGate == 1) {
+
+
+//--------------------------------------------
+// Slide 8, Animals
+//========================
+
+slide=8; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+//BUTTON 1, Newt
+//-----------------------------------------
+
+	b1_x1= 84;
+	b1_y1= 588;
+
+	b1_x2= b1_x1 + 400;
+	b1_y2= b1_y1 + 284;
+	
+	
+//BUTTON 2, Cricket
+//-----------------------------------------
+
+	b2_x1= 546;
+	b2_y1= 596;
+
+	b2_x2= b2_x1 + 362;
+	b2_y2= b2_y1 + 242;
+	
+
+//BUTTON 3, Moth
+//-----------------------------------------
+
+	b3_x1= 338;
+	b3_y1= 898;
+
+	b3_x2= b3_x1  + 400;
+	b3_y2= b3_y1  + 170;
+	
+
+//BUTTON 4, Toad
+//-----------------------------------------
+
+	b4_x1= 958;
+	b4_y1= 560;
+
+	b4_x2= b4_x1 + 408;
+	b4_y2= b4_y1 + 280;
+
+
+
+//BUTTON 5, Crab
+//-----------------------------------------
+
+	b5_x1= 776;
+	b5_y1= 854;
+
+	b5_x2= b5_x1 + 440;
+	b5_y2= b5_y1 + 226;
+	
+
+
+
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		TargetType="Target_Newt";
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		TargetType="Target_Cricket";
+		whileGate=1;
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		TargetType="Target_Moth";
+		whileGate=1;
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		TargetType="Target_Toad";
+		whileGate=1;
+
+		}
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		TargetType="Target_Crab";
+		whileGate=1;
+
+		}
+		
+
+run("Select None");
+
+
+		}
+
+
+
+}
+
+
+
+
+}
+
+
+if(FunGate == 2){
+
+//--------------------------------------------
+// Slide 9, Creator
+//========================
+
+slide=9; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+//BUTTON 1, Submit
+//-----------------------------------------
+
+	b1_x1= 942;
+	b1_y1= 805;
+
+	b1_x2= b1_x1 + 345;
+	b1_y2= b1_y1 + 163;
+	
+
+
+
+// Draw Target
+//--------------------------------
+creatorGate = 0;
+roiManager("Show None");
+
+makeRectangle(267, 537, 528, 522);
+roiManager("Add");
+
+run("Select All");
+roiManager("Add");
+
+roiManager("select", newArray( roiManager("count")-1, roiManager("count")-2) );
+roiManager("XOR");
+roiManager("Add");
+roiManager("deselect");
+
+
+roiManager("select", newArray( roiManager("count")-2, roiManager("count")-3) );
+roiManager("delete");
+
+
+roiManager("Show None");
+roiManager("deselect");
+
+
+while(creatorGate == 0){
+
+run("Select None");
+
+width=0;
+
+while(width<2){
+setTool("polygon");
+if(selectionType != -1){
+Roi.getBounds(x, y, width, height);
+}
+}
+
+roiManager("Add");
+
+roiManager("select", newArray(roiManager("count")-1, roiManager("count")-2 ));
+roiManager("AND");
+
+if(selectionType !=-1){
+roiManager("deselect")
+roiManager("select", roiManager("count")-1);
+roiManager("delete");
+waitForUser("Target needs to fit within the canvas");
+} else{
+roiManager("select", roiManager("count")-1);
+run("Subtract...", "value=160");
+creatorGate =1;
+}
+
+}
+
+
+newImage("CustomTarget", "RGB black", 400, 400, 1);
+roiManager("select", roiManager("count")-1);
+
+downScale = 400/520;
+
+run("Scale... ", "x=downScale  y=downScale  centered");
+
+roiManager("Add");
+roiManager("select", roiManager("count")-1);
+run("Add...", "value=255");
+
+
+//--------------------------------
+
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		TargetType="Target_Custom";
+		whileGate=1;
+
+		}
+		
+		
+		
+
+run("Select None");
+
+
+		}
+
+
+
+}
+
+
+
+
+
+
+}
+	
+
+
+
+
+
+//--------------------------------------------
+// Slide 10, Advanced Settings
+//========================
+
+slide=10; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+//BUTTON 1, Yes
+//-----------------------------------------
+
+	b1_x1= 280;
+	b1_y1= 784;
+
+	b1_x2= b1_x1 + 344;
+	b1_y2= b1_y1 + 208;
+	
+//BUTTON 2, No
+//-----------------------------------------
+
+	b2_x1= 856;
+	b2_y1= 784;
+
+	b2_x2= b2_x1 + 344;
+	b2_y2= b2_y1 + 208;
+	
+
+
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		AdvancedGate=1;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		AdvancedGate=0;
+		whileGate=1;
+
+
+		}
+		
+
+run("Select None");
+
+
+		}
+
+
+
+}
+
+
+
+if(AdvancedGate==1){
+
+
+//--------------------------------------------
+// Slide 11, Generations
+//========================
+
+run("Select None");
+wait(100);
+
+slide=11; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+run("Select None");
+
+
+//BUTTON 1, 10 Gen
+//-----------------------------------------
+
+	b1_x1= 116;
+	b1_y1= 674;
+
+	b1_x2= b1_x1 + 368;
+	b1_y2= b1_y1 + 110;
+	
+	
+	
+//BUTTON 2, 20 Gen
+//-----------------------------------------
+
+	b2_x1= 563;
+	b2_y1= 674;
+
+	b2_x2= b2_x1 + 368;
+	b2_y2= b2_y1 + 110;
+
+
+//BUTTON 3, 30 Gen
+//-----------------------------------------
+
+	b3_x1= 1001;
+	b3_y1= 674;
+
+	b3_x2= b3_x1 + 368;
+	b3_y2= b3_y1 + 110;
+	
+
+
+
+//BUTTON 4, 40 Gen
+//-----------------------------------------
+
+	b4_x1= 116;
+	b4_y1= 860;
+
+	b4_x2= b4_x1 + 368;
+	b4_y2= b4_y1 + 110;
+	
+	
+	
+//BUTTON 5, 50 Gen
+//-----------------------------------------
+
+	b5_x1= 563;
+	b5_y1= 860;
+
+	b5_x2= b5_x1 + 368;
+	b5_y2= b5_y1 + 110;
+
+
+//BUTTON 6, 60 Gen
+//-----------------------------------------
+
+	b6_x1= 1001;
+	b6_y1= 860;
+
+	b6_x2= b6_x1 + 368;
+	b6_y2= b6_y1 + 110;
+	
+	
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		GenerationLength = 10;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		GenerationLength = 20;
+		whileGate=1;
+
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		GenerationLength = 30;
+		whileGate=1;
+
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		GenerationLength = 40;
+		whileGate=1;
+
+
+		}
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		GenerationLength = 50;
+		whileGate=1;
+
+
+		}
+		
+		//Button 6
+		//-----------------
+		if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+		GenerationLength = 60;
+		whileGate=1;
+
+
+		}
+		
+
+run("Select None");
+
+
+		}
+		
+}
+
+//--------------------------------------------
+// Slide 12, PopSize
+//========================
+
+
+slide=12; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+run("Select None");
+
+
+//BUTTON 1, 12 individuals
+//-----------------------------------------
+
+	b1_x1= 116;
+	b1_y1= 674;
+
+	b1_x2= b1_x1 + 368;
+	b1_y2= b1_y1 + 110;
+	
+	
+	
+//BUTTON 2, 24 individuals
+//-----------------------------------------
+
+	b2_x1= 563;
+	b2_y1= 674;
+
+	b2_x2= b2_x1 + 368;
+	b2_y2= b2_y1 + 110;
+
+
+//BUTTON 3, 36 individuals
+//-----------------------------------------
+
+	b3_x1= 1001;
+	b3_y1= 674;
+
+	b3_x2= b3_x1 + 368;
+	b3_y2= b3_y1 + 110;
+	
+
+
+
+//BUTTON 4, 48 individuals
+//-----------------------------------------
+
+	b4_x1= 116;
+	b4_y1= 860;
+
+	b4_x2= b4_x1 + 368;
+	b4_y2= b4_y1 + 110;
+	
+	
+	
+//BUTTON 5, 60 individuals
+//-----------------------------------------
+
+	b5_x1= 563;
+	b5_y1= 860;
+
+	b5_x2= b5_x1 + 368;
+	b5_y2= b5_y1 + 110;
+
+
+//BUTTON 6, 72 individuals
+//-----------------------------------------
+
+	b6_x1= 1001;
+	b6_y1= 860;
+
+	b6_x2= b6_x1 + 368;
+	b6_y2= b6_y1 + 110;
+	
+	
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		PopSize = 12;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		PopSize = 24;
+		whileGate=1;
+
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		PopSize = 36;
+		whileGate=1;
+
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		PopSize = 48;
+		whileGate=1;
+
+
+		}
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		PopSize = 60;
+		whileGate=1;
+
+
+		}
+		
+		//Button 6
+		//-----------------
+		if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+		PopSize = 72;
+		whileGate=1;
+
+
+		}
+		
+
+run("Select None");
+
+
+		}
+		
+}
+
+
+
+//--------------------------------------------
+// Slide 13, Group Size
+//========================
+
+slide=13; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+run("Select None");
+
+
+//BUTTON 1, 1 per slide
+//-----------------------------------------
+
+	b1_x1= 114;
+	b1_y1= 690;
+
+	b1_x2= b1_x1 + 216;
+	b1_y2= b1_y1 + 108;
+	
+	
+	
+//BUTTON 2,  2 per slide
+//-----------------------------------------
+
+	b2_x1= 372;
+	b2_y1= 690;
+
+	b2_x2= b2_x1 +  216;
+	b2_y2= b2_y1 + 110;
+
+
+//BUTTON 3, 3 per slide
+//-----------------------------------------
+
+	b3_x1= 630;
+	b3_y1= 690;
+
+	b3_x2= b3_x1 +  216;
+	b3_y2= b3_y1 + 110;
+	
+
+
+//BUTTON 4, 4 per slide
+//-----------------------------------------
+
+	b4_x1= 890;
+	b4_y1= 690;
+
+	b4_x2= b4_x1 +  216;
+	b4_y2= b4_y1 + 110;
+	
+
+//BUTTON 5, 6 per slide
+//-----------------------------------------
+
+	b6_x1= 1146;
+	b6_y1= 690;
+
+	b6_x2= b6_x1 +  216;
+	b6_y2= b6_y1 + 110;
+	
+	
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		NumSlide = 1;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		NumSlide = 2;
+		whileGate=1;
+
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		NumSlide = 3;
+		whileGate=1;
+
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		NumSlide = 4;
+		whileGate=1;
+
+
+		}
+		
+		
+				
+		//Button 4
+		//-----------------
+		if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+		NumSlide = 6;
+		whileGate=1;
+
+
+		}
+		
+		
+		
+		
+
+run("Select None");
+
+
+		}
+		
+}
+
+
+
+
+
+
+
+//--------------------------------------------
+// Slide 14, Timeout
+//========================
+
+
+slide=14; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+run("Select None");
+
+
+//BUTTON 1, 10s
+//-----------------------------------------
+
+	b1_x1= 116;
+	b1_y1= 674;
+
+	b1_x2= b1_x1 + 368;
+	b1_y2= b1_y1 + 110;
+	
+	
+	
+//BUTTON 2, 15s
+//-----------------------------------------
+
+	b2_x1= 563;
+	b2_y1= 674;
+
+	b2_x2= b2_x1 + 368;
+	b2_y2= b2_y1 + 110;
+
+
+//BUTTON 3, 20s
+//-----------------------------------------
+
+	b3_x1= 1001;
+	b3_y1= 674;
+
+	b3_x2= b3_x1 + 368;
+	b3_y2= b3_y1 + 110;
+	
+
+
+
+//BUTTON 4, 30s
+//-----------------------------------------
+
+	b4_x1= 116;
+	b4_y1= 860;
+
+	b4_x2= b4_x1 + 368;
+	b4_y2= b4_y1 + 110;
+	
+	
+	
+//BUTTON 5, 45s
+//-----------------------------------------
+
+	b5_x1= 563;
+	b5_y1= 860;
+
+	b5_x2= b5_x1 + 368;
+	b5_y2= b5_y1 + 110;
+
+
+//BUTTON 6, 1 min
+//-----------------------------------------
+
+	b6_x1= 1001;
+	b6_y1= 860;
+
+	b6_x2= b6_x1 + 368;
+	b6_y2= b6_y1 + 110;
+	
+	
+
+whileGate=0;
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		TimeOutTime = 10000;
+		whileGate=1;
+
+		}
+		
+		
+		//Button 2
+		//-----------------
+		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+
+		TimeOutTime = 15000;
+		whileGate=1;
+
+
+		}
+		
+		//Button 3
+		//-----------------
+		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+
+		TimeOutTime = 20000;
+		whileGate=1;
+
+
+		}
+		
+		
+		//Button 4
+		//-----------------
+		if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
+
+		TimeOutTime = 30000;
+		whileGate=1;
+
+
+		}
+		
+		//Button 5
+		//-----------------
+		if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
+
+		TimeOutTime = 45000;
+		whileGate=1;
+
+
+		}
+		
+		//Button 6
+		//-----------------
+		if( clickX > b6_x1   &&    clickX < b6_x2   &&   clickY > b6_y1 &&  clickY < b6_y2) {
+
+		TimeOutTime = 60000;
+		whileGate=1;
+
+
+		}
+		
+
+run("Select None");
+
+
+		}
+		
+}
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+//--------------------------------------------
+// Slide 15, Name
+//========================
+
+slide=15; // Determines Slice 
+
+selectImage("Startup");
+setSlice(slide);
+
+
+
+//BUTTON 1, Folder 1
+//-----------------------------------------
+
+	b1_x1= 540;
+	b1_y1= 713;
+
+	b1_x2=  540 + 400;
+	b1_y2= 713 + 208;
+
+
+
+whileGate=0;
+
+
+run("Select None");
+
+while(whileGate==0){
+wait(100);
+	if(isOpen("Startup")){
+selectImage("Startup");
+setSlice(slide);
+}else{
+close("blank");
+exit
+}
+	selectImage("Startup");
+	setSlice(slide);
+
+	setTool("point");
+
+		if(selectionType!=-1){
+
+		Roi.getCoordinates(xpoints, ypoints);
+		clickX=xpoints[0];
+		clickY=ypoints[0];
+
+		//Button 1
+		//-----------------
+		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+
+		whileGate=1;
+
+		}
+
+run("Select None");
+		}
+
+
+
+
+}
+
+NameString = "xxxxxxxxxxxxxxxxxxxxxxxxxxx";
+Characters = lengthOf(NameString);
+Characters = 15-Characters;
+
+while(Characters<0){
+
+Dialog.create("Population Name");
+
+	Dialog.addString("Give a Name no longer than 15 characters", "");
+
+Dialog.show();
+
+NameString = Dialog.getString();
+
+Characters = lengthOf(NameString);
+Characters = 15-Characters;
+
+if(Characters < 0 ){
+waitForUser("Name is too long!, Try again");
+}
+
+}
+
+
+//--------------------------------------------
+//Run Loading Animation
+//========================
+
+selectImage("Loading");
+setBatchMode("Show");
+setLocation(xScale, yScale, wScale, hScale);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+
+selectImage("Startup");
+setBatchMode("Hide");
+
+
+//------------------------------
+
+
+
+
+makeFolderDIR =  getDirectory("plugins") + "1 CamoEvo/Population/"+NameString+"/"; // New Folder
+
+printFolderDIR = "1 CamoEvo/Population/"+NameString+"/"; // Save for Use
+
+File.makeDirectory(makeFolderDIR);  // New Folder Make
+File.makeDirectory(makeFolderDIR+"Backgrounds/");
+
+copyFiles = getFileList(backgroundPhotosDIR);
+
+j=0;								// Transfer Files
+
+for(i=0; i<copyFiles.length; i++){
+
+temp=copyFiles[i];
+
+
+
+fromPath = backgroundPhotosDIR + temp;
+
+toPath = makeFolderDIR  + "Backgrounds/"+ j + ".jpg";
+
+j=j+1;
+
+selectImage("Loading");
+run("Select All");
+Roi.getBounds(xScale, yScale, wScale, hScale);
+run("Select None");
+
+open(fromPath);
+//setBatchMode("show");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+run("Select None");
+
+if(height>width){
+run("Rotate 90 Degrees Right");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+run("Select None");
+}
+
+aspectRatio = wScale / hScale;
+
+cropW=height*aspectRatio;
+cropH=height;
+cropX=0;
+cropY=0;
+
+makeRectangle(cropX, cropY, cropW, cropH);
+run("Crop");
+
+run("Select All");
+Roi.getBounds(x, y, width, height);
+run("Select None");
+gameScale=1800/wScale;
+imageScaleW=wScale*gameScale;
+imageScaleH=hScale*gameScale;
+run("Size...", "width=&imageScaleW height=&imageScaleH depth=1 constrain average interpolation=Bilinear");
+
+
+saveAs("Jpeg", toPath);
+rename("bg_close");
+close("bg_close");
+
+}
+
+
+
+dataFile = File.open(makeFolderDIR+"Population Settings.txt");
+
+print(dataFile, "Target = "+"\t"+TargetType);
+print(dataFile, "Generation = "+"\t"+GenerationLength);
+print(dataFile, "PopSize = "+"\t"+PopSize);
+print(dataFile, "NumSlide = "+"\t"+NumSlide);
+print(dataFile, "TimeOutTime = "+"\t"+TimeOutTime);
+
+File.close(dataFile);
+
+
+
+dataFile = File.open(PopLocal);
+print(dataFile, printFolderDIR );
+File.close(dataFile);
+
+if(isOpen("CustomTarget")){
+selectImage("CustomTarget");
+saveAs("PNG",makeFolderDIR +"Target_Custom.png");
+}
+
+//--------------------------------------------
+//Transition to Game
+//========================
+
+run("Camo Evolution Game");
+
+
+} // End of New Game Setup

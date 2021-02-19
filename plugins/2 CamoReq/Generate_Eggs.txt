@@ -1,0 +1,1012 @@
+
+
+// TestPoint
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+function TestPoint(Title) {
+Dialog.createNonBlocking("TestPoint");
+Dialog.createNonBlocking("Did " + Title + " work?");
+Dialog.show();
+
+}
+
+
+// Fetch ROI
+//---------------------------------------------------
+function 	roiGetList(String1){
+
+
+roiList1 = newArray();
+roiLocs1 = newArray();
+roiFullList1 = newArray();
+nROIs1 = roiManager("count");
+
+for(j=0; j<nROIs1; j++){
+	roiManager("Select", j);
+	tStr = getInfo("selection.name");
+	roiFullList1 = Array.concat(roiFullList1, tStr);
+	if(startsWith(tStr, String1) == true){
+		roiList1 = Array.concat(roiList1, tStr);
+		roiLocs1= Array.concat(roiLocs1, j);
+		}
+	}
+
+return roiLocs1;
+
+}
+
+
+// Index
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+  function index(a, value) {
+      for (i=0; i<a.length; i++)
+          if (a[i]==value) return i;s
+      return -1;
+  }
+  
+  
+  
+
+
+
+
+PatternTemplate = getDirectory("plugins") + "2 CamoReq/PatternTemplate.txt";
+
+GenesString=File.openAsString(PatternTemplate);	// open txt data file
+GenesRows=split(GenesString, "\n");
+Var0 = newArray();
+Var1 =  newArray();
+Var2 =  newArray();
+Var3 =  newArray();
+Var4 =  newArray();
+Var5 =  newArray();
+
+Var6 =  newArray();
+Var7 =  newArray();
+Var8 = newArray();
+Var9 =  newArray();
+Var10 =  newArray();
+Var11 =  newArray();
+
+Var12 =  newArray();
+Var13 = newArray();
+Var14 =  newArray();
+Var15 =  newArray();
+Var16 =  newArray();
+Var17 =  newArray();
+
+Var18 =  newArray();
+Var19 =  newArray();
+Var20 =  newArray();
+Var21 =  newArray();
+Var22 =  newArray();
+Var23 =  newArray();
+Var24 =  newArray();
+Var25 =  newArray();
+Var26 =  newArray();
+v27 = newArray();
+
+
+Temp = split(GenesRows[0],"\t");
+v0=index(Temp, "ID");
+v1=index(Temp, "speckling_intensity");
+v2=index(Temp, "speckling_sigma");
+v3=index(Temp, "maculation1_X");
+v4=index(Temp, "maculation1_Y");
+
+v5=index(Temp, "maculation1_sigma");
+v6=index(Temp, "maculation1_expansion");
+
+v7=index(Temp, "maculation1_CS_sigma");
+v8=index(Temp, "maculation1_CS_height");
+v9=index(Temp, "maculation1_CS_length");
+v10=index(Temp, "maculation1_CS_deposition");
+
+v11=index(Temp, "maculation2_X");
+v12=index(Temp, "maculation2_Y");
+v13=index(Temp, "maculation2_sigma");
+
+v14=index(Temp, "random_walk");
+v15=index(Temp, "bg_pigment");
+v16=index(Temp, "bg_deposition");
+v17=index(Temp, "pttn1_pigment");
+v18=index(Temp, "pttn2_pigment");
+v19=index(Temp, "pttn1_deposition");
+v20=index(Temp, "pttn2_deposition");
+v21=index(Temp, "pttn1_sigma");
+v22=index(Temp, "pttn2_sigma");
+v23=index(Temp, "pttn3_deposition");
+v24=index(Temp, "pttn3_rotation");
+v25=index(Temp, "pttn4_deposition");
+v26=index(Temp, "pttn4_rotation");
+v27=index(Temp, "maculation1_threshold");
+
+
+
+for(i=1; i<GenesRows.length; i++){
+Temp = split(GenesRows[i],"\t");
+
+Var0 = Array.concat(Var0,Temp[v0]);
+Var1 = Array.concat(Var1,Temp[v1]);
+Var2 = Array.concat(Var2,Temp[v2]);
+Var3 = Array.concat(Var3,Temp[v3]);
+Var4 = Array.concat(Var4,Temp[v4]);
+Var5 = Array.concat(Var5,Temp[v5]);
+Var6 = Array.concat(Var6,Temp[v6]);
+Var7 = Array.concat(Var7,Temp[v7]);
+Var8 = Array.concat(Var8,Temp[v8]);
+Var9 = Array.concat(Var9,Temp[v9]);
+Var10 = Array.concat(Var10,Temp[v10]);
+Var11 = Array.concat(Var11,Temp[v11]);
+Var12 = Array.concat(Var12,Temp[v12]);
+Var13 = Array.concat(Var13,Temp[v13]);
+Var14 = Array.concat(Var14,Temp[v14]);
+Var15 = Array.concat(Var15,Temp[v15]);
+Var16 = Array.concat(Var16,Temp[v16]);
+Var17 = Array.concat(Var17,Temp[v17]);
+Var18 = Array.concat(Var18,Temp[v18]);
+Var19 = Array.concat(Var19,Temp[v19]);
+Var20 = Array.concat(Var20,Temp[v20]);
+Var21 = Array.concat(Var21,Temp[v21]);
+Var22 = Array.concat(Var22,Temp[v22]);
+Var23 = Array.concat(Var23,Temp[v23]);
+Var24 = Array.concat(Var24,Temp[v24]);
+Var25 = Array.concat(Var25,Temp[v25]);
+Var26 = Array.concat(Var26,Temp[v26]);
+Var27 = Array.concat(Var27,Temp[v27]);
+
+}
+
+
+
+
+for(A = 0; A<GenesRows.length-1; A++){
+
+
+setBatchMode(true);
+
+while(roiManager("count") > 0){
+	roiManager("select", 0);
+	roiManager("Delete");
+}
+
+
+canvasW = 400;
+topY = 50; // y coordinate of the top of the image
+
+//------------------------Speckling Variables-------------------------
+noiL =  parseFloat(Var1[A]);  // level of speckling noise (SDs around 1)
+noiS =  parseFloat(Var2[A]); // speckling noise sigma
+
+
+//------------------------Maculation Variables-------------------------
+mac1_X = parseFloat(Var3[A]); // x coord
+mac1_Y = parseFloat(Var4[A]); // y coord
+mac1_S = parseFloat(Var5[A]); // sigma value
+mac1_E =  parseFloat(Var6[A]);// expansion
+
+mac1_csS =  parseFloat(Var7[A]);// counter-shading sigma value
+mac1_csH=   parseFloat(Var8[A]);// pattern gradient height
+mac1_csL =   parseFloat(Var9[A]);  // pattern gradient length
+mac1_csD =   parseFloat(Var10[A]);// harshness
+mac1_T = parseFloat(Var27[A]);// threshold
+
+
+mac2_X = parseFloat(Var11[A]); // x coord
+mac2_Y = parseFloat(Var12[A]); // y coord
+mac2_S =  parseFloat(Var13[A]);
+rW =  parseFloat(Var14[A]);  // randomWalk
+
+
+// ------------------- Colour Variables-------------------
+hueMin=0;
+splitMin=45;
+splitMax=105;
+hueRange = 130;
+
+lumMin = 30;
+lumMax = 235;
+satMin = 8;
+satMax =180;
+
+bg_pigment =  parseFloat(Var15[A]);//  determines which pigment and which type is used
+bg_deposition =  parseFloat(Var16[A]); // regulates how much pigment is deposited.
+
+pttn1_pigment  =  parseFloat(Var17[A]);//  determines which pigment and which type is used
+pttn1_deposition =  parseFloat(Var18[A]); // regulates how much pigment is deposited by pttn1
+
+
+pttn2_pigment  =  parseFloat(Var19[A]);//  determines which pigment and which type is used
+pttn2_deposition =  parseFloat(Var20[A]); // regulates how much pigment is deposited by pttn2
+
+
+pttn1_sC =  parseFloat(Var21[A]); // pattern 1 sigma
+pttn2_sC =  parseFloat(Var22[A]); // pattern 2 sigma
+
+
+// ------------------- Pattern Repeat Variables-------------------
+pttn3_deposition=  parseFloat(Var23[A]); // determins the deposition and whether the 1st pattern gets repeated
+pttn3_rotation =  parseFloat(Var24[A]);// determines the rotation of the repeat.
+
+
+pttn4_deposition= parseFloat(Var25[A]); // determins the deposition and whether the 1st pattern gets repeated
+pttn4_rotation =  parseFloat(Var26[A]);// determines the rotation of the repeat.
+
+
+
+//----------------------------Transforming variables to required ranges----------------------------------
+
+//Pattern Transformations
+//--------------------------------
+///Mac1
+//--------
+mac1_X = mac1_X*(2000-canvasW-10)+10;
+mac1_Y = mac1_Y*(2000-canvasW-10)+10;
+
+mac1_Smin = 1.2;
+mac1_Smax = 11;
+mac1_S = ( Math.pow(mac1_S, 1.4)* (mac1_Smax-mac1_Smin) ) + mac1_Smin;
+
+mac1_E = (mac1_E*(80))-20;
+
+
+mac1_csSmax = canvasW/2;
+mac1_csSmin = 40;
+mac1_csS = mac1_csS*(mac1_csSmax-mac1_csSmin) + mac1_csSmin;
+
+mac1_csHmax = (canvasW); 
+mac1_csHmin = 0;
+mac1_csH = mac1_csH*(mac1_csHmax - mac1_csHmin) + mac1_csHmin;
+
+mac1_csLmax = (canvasW)-mac1_csH; 
+mac1_csLmin = ((canvasW)-mac1_csH)/4; 
+mac1_csL = mac1_csL*(mac1_csLmax - mac1_csLmin) + mac1_csLmin;
+
+mac1_csD  = 1+((mac1_csD )*4);
+
+///Mac2
+//--------
+mac2_X = mac2_X*(2000-canvasW-10)+10;
+mac2_Y = mac2_Y*(1300-canvasW-10)+10;
+
+
+mac2_Smin = 0.8;
+mac2_Smax = 11;
+mac2_S = ( Math.pow(mac2_S, 1.4)* (mac2_Smax-mac2_Smin) ) + mac2_Smin;
+
+
+//SpecklingTransformations
+//------------------------------
+noiSmax = canvasW/40;// noise sigma
+noiSmin = 1;
+noiS = noiS*(noiSmax-noiSmin) + noiSmin;
+
+noiLmax = 0.05; // noise intensity (SDs from mean, where mean=1)
+noiLmin = 0.01;
+noiL = noiL*(noiLmax-noiLmin) + noiLmin;
+
+
+//Colour Transformations
+//--------------------------------
+
+backgroundRange = Array.getSequence(hueRange);
+
+for(i=0; i<hueRange; i++){
+
+redBrown =  (i*((splitMin-hueMin)/hueRange))+hueMin;
+
+blueGreen = (i*((hueRange-splitMax)/hueRange))+splitMax;
+
+redBrownRange = Array.concat( redBrownRange, redBrown);
+blueGreenRange = Array.concat( blueGreenRange, blueGreen);
+}
+
+
+maculationRange = Array.concat(redBrownRange,blueGreenRange);
+
+eggColourSpace1 = newArray();
+for(i=0; i<700; i++){
+i2 = Math.pow(i/700,0.9)/2.53;
+indexN=i2*((backgroundRange.length-1));
+eggColourSpace1=Array.concat(eggColourSpace1, backgroundRange[indexN]);
+}
+
+
+eggColourSpace2 = newArray();
+for(i=0; i<500; i++){
+i2 = Math.pow(i/500,1)/5;
+indexN=backgroundRange.length-1-(i2*((backgroundRange.length-1)));
+eggColourSpace2=Array.concat(eggColourSpace2, backgroundRange[indexN]);
+}
+
+eggColourSpace2=Array.sort(eggColourSpace2);
+
+eggColourSpace = Array.concat(eggColourSpace1, eggColourSpace2);
+
+
+
+bg_pigment = eggColourSpace [bg_pigment *(eggColourSpace .length-1)];
+pttn1_pigment = eggColourSpace [(pttn1_pigment)*(eggColourSpace .length-1)];
+pttn2_pigment = eggColourSpace [(pttn2_pigment) *(eggColourSpace .length-1)];
+
+
+// Deposition
+
+bg_deposition = Math.pow(bg_deposition, 1.1)*0.6;
+bg_depositionL = (bg_deposition*((lumMax-lumMin))+lumMin);
+bg_depositionS = (bg_deposition*((satMax-satMin))+satMin);
+
+if(bg_pigment>splitMin && bg_pigment<splitMax){
+bg_depositionS = bg_depositionS - ((splitMax-splitMin)-Math.sqrt(Math.sqr(((splitMax+splitMin)/2) -bg_pigment )));
+}
+
+
+
+//pttn1_deposition = Math.pow(pttn1_deposition, 1.4);
+pttn1_depositionL = (pttn1_deposition*((lumMax-lumMin))-lumMin);
+pttn1_depositionS = (pttn1_deposition*((satMax-satMin))+satMin);
+
+//pttn2_deposition = Math.pow(pttn2_deposition, 1.4);
+pttn2_depositionL = (pttn2_deposition*((lumMax-lumMin))-lumMin);
+pttn2_depositionS = (pttn2_deposition*((satMax-satMin))+satMin);
+
+
+// Blur
+blurMin=-8;
+blurMax=6;
+
+pttn1_sC = pttn1_sC*(blurMax-blurMin)+blurMin;
+pttn2_sC = pttn2_sC*(blurMax-blurMin)+blurMin;
+
+
+// Repeats and Repeat Angles.
+angle1Array = newArray(10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,-10,-12,-14,-16,-18,-20,-22,-24,-26,-28,-30,-32,-34,-36,-38,-40,-42,-44,-46,-48,-50);
+angle1Array = Array.sort(angle1Array);
+
+
+if(pttn3_deposition <0.65){
+pttn3_deposition = 2;
+pttn3_depositionL = 2;
+pttn3_depositionS = 2;
+}else{
+pttn3_deposition = pttn1_deposition/(pttn3_deposition*2);
+pttn3_depositionL = (pttn3_deposition*((lumMax-lumMin))-lumMin);
+pttn3_depositionS = (pttn3_deposition*((satMax-satMin))+satMin);
+}
+
+pttn3_rotation = angle1Array[pttn3_rotation*(angle1Array.length-1)];
+
+
+if(pttn4_deposition <0.65){
+pttn4_deposition = 2;
+pttn4_depositionL = 2;
+pttn4_depositionS = 2;
+}else{
+pttn4_deposition = pttn2_deposition/(pttn4_deposition*2);
+pttn4_depositionL = (pttn4_deposition*((lumMax-lumMin))-lumMin);
+pttn4_depositionS = (pttn4_deposition*((satMax-satMin))+satMin);
+}
+
+pttn4_rotation = angle1Array[pttn4_rotation*(angle1Array.length-1)];
+
+
+depositionArray = newArray(pttn1_deposition, pttn2_deposition, pttn3_deposition, pttn4_deposition);
+depositionLArray = newArray(pttn1_depositionL, pttn2_depositionL, pttn3_depositionL, pttn4_depositionL);
+depositionSArray =  newArray(pttn1_depositionS, pttn2_depositionS, pttn3_depositionS, pttn4_depositionS);
+pigmentArray = newArray(pttn1_pigment, pttn2_pigment, pttn1_pigment, pttn2_pigment);
+blurArray=newArray(pttn1_sC,pttn2_sC,pttn1_sC,pttn2_sC);
+
+
+
+
+
+//====================Penotype Generation================================
+//-----------------------------------------------------------------------
+
+
+
+
+while(roiManager("count")>0){
+roiManager("select", 0);
+roiManager("delete");
+}
+
+
+
+
+
+canvasW=400;
+topY=50;
+
+
+
+
+//---------------------------
+//Pattern Generation
+//================
+
+
+// Make Gaussian Pattern
+//-------------------------------------------
+ PatternSheet = getDirectory("plugins") + "2 CamoReq//Patterns/eggPatterns.jpg";
+
+if(!isOpen("patternSheet")){
+open(PatternSheet);
+rename("patternSheet");
+}
+
+
+selectImage("patternSheet");
+
+makeRectangle(mac1_X, mac1_Y, 400, 400);
+
+run("Duplicate...", "title=[Maculation1]");
+
+run("Gaussian Blur...", "sigma=mac1_S");
+
+getStatistics(area, mean, min, max, std, histogram);
+
+
+setAutoThreshold("Otsu dark");
+setOption("BlackBackground", true);
+setAutoThreshold("Default dark");
+getThreshold(lower, upper);
+resetThreshold;
+
+
+mac1_Tmin = min-(std/4);
+mac1_Tmax = mean+(std/4);
+mac1_T =  ( mac1_T * (mac1_Tmax-mac1_Tmin) ) + mac1_Tmin;
+
+
+// Countershading.
+//-------------------------------------------
+
+newImage("cs", "32-bit black", canvasW, canvasW, 1);
+selectImage("cs");
+wait(10);
+//run("Set...", "value=1");
+makeRectangle(0,mac1_csH,canvasW,mac1_csL);
+
+
+run("Set...", "value=0.5");
+
+run("Select None");
+run("Gaussian Blur...", "sigma=&mac1_csS");
+
+run("Divide...", "value=mac1_csD ");
+
+imageCalculator("Subtract", "Maculation1","cs");
+close("cs");
+
+setThreshold(mac1_T, 255);
+
+run("Convert to Mask");
+
+
+run("Select None");
+getStatistics(area, mean, min, max, std, histogram);
+if(mean<=5){
+run("Invert");
+}
+
+//  Expansion
+//-------------------------------------------
+run("Select All");
+getStatistics(area, mean, min, max, std, histogram);
+run("Select None");
+
+run("Create Selection");
+
+if(selectionType!=-1){
+run("Make Inverse");
+
+if(selectionType!=-1){
+getStatistics(area, mean, min, max, std, histogram);
+
+if(area>10){
+mac1_E = mac1_E*(canvasW/area)*2;
+
+//print(mac1_E );
+if(mac1_E>150){
+mac1_E=150;
+}
+
+run("Enlarge...", "enlarge=&mac1_E");
+
+
+setColor("black");
+fill();
+
+setThreshold(254, 255);
+run("Convert to Mask");
+}
+}
+}
+
+// Make Gaussian Pattern
+//-------------------------------------------
+selectImage("patternSheet");
+
+makeRectangle(mac2_X, mac2_Y, 400, 400);
+
+run("Duplicate...", "title=[Maculation2]");
+
+run("Gaussian Blur...", "sigma=mac2_S");
+
+getStatistics(area, mean, min, max, std, histogram);
+
+
+setThreshold(94, 255);
+run("Convert to Mask");
+run("Invert");
+
+
+
+
+// Add RandomWalk
+//--------------------------------------------------------
+			while(roiManager("count")>0){
+			roiManager("select", 0);
+			roiManager("delete");
+			}
+
+			if(isOpen("RandomTest")){
+			close("RandomTest");
+			}
+
+			selectWindow("Maculation2");
+			run("Select All");
+
+			run("Select None");
+			getStatistics(area, mean, min, max, std, histogram);
+			std1=std;
+
+			if(std1 !=0){
+			run("Create Selection");
+
+			if(selectionType != -1 && std1 !=0 && rW >0.25 ){
+
+			wait(100);
+			run("Make Inverse");
+
+			getStatistics(area, mean, min, max, std, histogram);
+
+			if(area<1350){
+
+			roiManager("add");
+			makeRectangle(-1,-1,1,1);
+			roiManager("add");
+
+			roiManager("Select", newArray(roiManager("count")-1,roiManager("count")-2));
+			roiManager("Combine");
+			roiManager("Add");
+
+			roiManager("Select", newArray(roiManager("count")-2,roiManager("count")-3));
+			roiManager("delete");
+
+			roiManager("Select", roiManager("count")-1);
+
+			xDir=1;
+			yDir=1;
+
+
+			dirArray=newArray(-1,1);
+		
+			for(j=0; j<1; j++) {
+			roiManager("deselect");
+			roiManager("Select", roiManager("count")-1);
+
+			setColor("black");
+
+			minAngle=-20;
+			maxAngle=20;
+
+			Angle = random()*(maxAngle-minAngle) + minAngle;
+
+
+			for(i=0; i<(rW*500); i++){
+
+			run("Copy");
+
+			rand=random();
+			if(rand<1){
+			Angle = Angle + (random()*(maxAngle-minAngle) + minAngle);
+			}
+
+
+			Distance =1.5;
+
+			radi = Angle*(PI/180);
+
+			Roi.getBounds(x, y, width, height)
+
+			yCd = y + (  sin(radi ) *Distance );
+			xCd = x +(  cos(radi ) *Distance );
+
+
+			Roi.move(xCd, yCd);
+
+			setPasteMode("Transparent-white");
+			run("Paste");
+
+			}
+
+			}
+
+			}
+
+			}
+			
+
+}
+
+
+//Add additional Maculations
+//----------------------------------------------
+
+//Make Maculation 3
+if(depositionArray[2] != 2){
+selectImage("Maculation1");
+run("Select None");
+run("Duplicate...", "title=Maculation3");
+run("Rotate... ", "angle=&pttn3_rotation  grid=1 interpolation=Bilinear");
+run("Select All");
+run("Copy");
+angle2=-pttn3_rotation-pttn3_rotation -((pttn3_rotation)/10)-5;
+run("Rotate... ", "angle=&angle2  grid=1 interpolation=Bilinear");
+setPasteMode("Transparent-white");
+run("Paste");
+run("Select All");
+Roi.getBounds(x, y, shiftW, shiftH);
+shiftH=shiftH+20;
+run("Scale...", "x=- y=- width=&shiftW height=&shiftH interpolation=None");
+
+
+setThreshold(128, 255);
+run("Convert to Mask");
+
+}
+
+//Make Maculation 4
+if(depositionArray[3] != 2){
+selectImage("Maculation2");
+run("Select None");
+run("Duplicate...", "title=Maculation3");
+run("Rotate... ", "angle=&pttn4_rotation  grid=1 interpolation=Bilinear");
+run("Select All");
+run("Copy");
+angle2=-pttn4_rotation-pttn4_rotation  -((pttn3_rotation)/10)-5;
+run("Rotate... ", "angle=&angle2  grid=1 interpolation=Bilinear");
+setPasteMode("Transparent-white");
+run("Paste");
+run("Select All");
+Roi.getBounds(x, y, shiftW, shiftH);
+shiftH=shiftH+20;
+run("Scale...", "x=- y=- width=&shiftW height=&shiftH interpolation=None");
+setThreshold(128, 255);
+run("Convert to Mask");
+
+}
+
+
+//Add Selections
+//----------------------------------------------
+
+
+macIDs=newArray("Null","Null", "Null", "Null");
+
+
+while(roiManager("count") > 0){
+	roiManager("select", 0);
+	roiManager("Delete");
+}
+
+
+selectImage("Maculation1"); //Add Maculation 1 ROI
+run("Select None");
+
+run("Invert");
+run("Create Selection");
+if(selectionType!=-1){
+roiManager("Add");
+macIDs[0]=roiManager("count")-1;
+roiManager("select", roiManager("count")-1);
+roiManager("rename", "Maculation1");
+} 
+
+
+selectImage("Maculation2"); //Add Maculation 2 ROI
+run("Select None");
+
+run("Invert");
+run("Create Selection");
+if(selectionType!=-1){
+roiManager("Add");
+macIDs[1]=roiManager("count")-1;
+roiManager("select", roiManager("count")-1);
+roiManager("rename", "Maculation2");
+}
+
+
+if(isOpen("Maculation3")){
+selectImage("Maculation3"); //Add Maculation 3 ROI
+run("Select All");
+
+run("Invert");
+run("Create Selection");
+if(selectionType!=-1){
+roiManager("Add");
+macIDs[2]=roiManager("count")-1;
+roiManager("select", roiManager("count")-1);
+roiManager("rename", "Maculation3");
+
+}
+}
+
+if(isOpen("Maculation4")){
+selectImage("Maculation4"); //Add Maculation 4 ROI
+run("Select All");
+
+run("Invert");
+run("Create Selection");
+if(selectionType!=-1){
+roiManager("Add");
+macIDs[3]=roiManager("count")-1;
+roiManager("select", roiManager("count")-1);
+roiManager("rename", "Maculation4");
+}
+}
+
+
+
+//Determine Maculation Handling Order
+//----------------------------------------------
+
+
+addMaculationOrder = Array.rankPositions(depositionArray);
+
+
+close("Maculation1");
+close("Maculation2");
+if(isOpen("Maculation3")){
+close("Maculation3");
+}
+
+if(isOpen("Maculation4")){
+close("Maculation4");
+}
+
+
+//---------------------Colour Generation-------------------------
+
+newImage("col", "RGB white", canvasW, canvasW, 1);
+run("HSB Stack");
+
+run("Select None");
+
+
+//Backgrounds
+//------------------------
+
+
+selectImage("col");
+run("Select All");
+//Hue
+setSlice(1);
+colorAvgBg = bg_pigment;
+
+setColor(colorAvgBg ,colorAvgBg ,colorAvgBg);
+fill();
+
+
+//Sat
+setSlice(2);
+
+satValBg = satMin + (bg_depositionS);
+
+setColor(satValBg ,satValBg ,satValBg );
+run("Select All");
+fill();
+
+
+
+//Lum
+setSlice(3);
+
+lumValBg = lumMax - (bg_depositionL);
+setColor(lumValBg ,lumValBg ,lumValBg );
+fill();
+
+
+
+//Patterns
+//------------------------
+
+//Array.show(addMaculationOrder, macIDs, depositionArray, depositionSArray, depositionLArray, pigmentArray);
+
+for(i=0; i<4;i++){
+
+indexN = addMaculationOrder[i];
+
+ROI = macIDs[indexN];
+Colour = pigmentArray[indexN];
+Deposition =  depositionArray[indexN];
+Saturation = depositionSArray[indexN];
+Luminance = depositionLArray[indexN];
+
+if(ROI != "NULL" && Deposition != 2){
+
+
+//Colour
+setSlice(1);
+roiManager("select", ROI );
+
+colValPttn = ((Colour*Deposition) + (colorAvgBg*bg_deposition))/(Deposition+bg_deposition);
+setColor(colValPttn  ,colValPttn  ,colValPttn  );
+
+fill();
+
+
+//Sat
+setSlice(2);
+roiManager("select", ROI );
+
+colorDistance = Math.sqrt(Math.sqr((Colour)-(bg_pigment)));
+if(colorDistance > (255/2)){
+colorDistance = colorDistance - (255/2);
+}
+
+satValPttn = satValBg + Saturation - colorDistance;
+
+run("Set...", "value=&satValPttn slice");
+
+run("Max...", "value=&satMax slice");
+run("Min...", "value=&satMin slice");
+
+
+//Lum
+setSlice(3);
+roiManager("select", ROI );
+
+
+lumValPttn= lumValBg - Luminance;
+
+run("Set...", "value=&lumValPttn");
+
+run("Min...", "value=&lumMin slice");
+run("Max...", "value=&lumMax slice");
+
+}
+}
+
+
+
+//-----------------------------------Random Speckling---------------------------------
+
+newImage("random", "32-bit random", canvasW, canvasW, 1);
+run("Gaussian Blur...", "sigma=&noiS");
+run("Select All");
+
+getStatistics(area, mean, min, max, SD);
+
+if(mean > 0)
+	mStr =  "code=v=(((v/" + d2s(SD,12) + ")-" + d2s(mean,12) + ")*" + d2s(noiL,12) + ")+1";
+else {
+	mean *= -1;
+	mStr =  "code=v=(((v/" + d2s(SD,12) + ")+" + d2s(mean,12) + ")*" + d2s(noiL,12) + ")+1";
+}
+
+run("Macro...", mStr);
+
+//idea: allow to flip between a single threshold level (i.e. keep pattern with higher pixel values), or switch to selecting an intermediate level, growing from median
+run("Copy");
+selectImage("col");
+setSlice(3);
+setPasteMode("Multiply");
+run("Select All");
+run("Paste");
+
+setSlice(3);
+run("Select All");
+run("Min...", "value=&lumMin slice");
+run("Max...", "value=&lumMax slice");
+
+
+run("RGB Color");
+
+for(i=0; i<4;i++){
+indexN = addMaculationOrder[i];
+
+ROI = macIDs[i];
+Deposition =  depositionArray[indexN];
+Blur = blurArray[indexN];
+
+
+if(ROI != "NULL" && Deposition != 2 && Blur>0){
+
+roiManager("select", ROI);
+run("Enlarge...", "enlarge=3");
+run("Gaussian Blur...", "&Blur");
+
+
+} else {
+
+if(ROI != "NULL"){
+roiManager("select", ROI);
+run("Enlarge...", "enlarge=5");
+run("Smooth");
+}
+}
+
+}
+
+
+
+selectImage("col");
+run("Spherical Deform"); // wrap around sphere
+run("Select All");
+run("Invert");
+run("Copy");
+setPasteMode("Subtract");
+
+
+close("Col");
+open(getDirectory("plugins") + "1 CamoEvo/Targets/Target_Egg.png");
+run("Select All");
+run("Paste");
+
+rename(Var0[A]);
+
+
+
+run("Set... ", "zoom=50 x=200 y=200");
+
+//Clear up uneeded images.
+
+
+
+selectImage("random");
+close("random");
+
+
+
+
+if(isOpen("Output"))
+close("Output");
+
+
+
+
+wait(10);
+
+
+
+
+
+//setBatchMode(false);
+
+
+
+
+//waitForUser("waiting");
+
+//setBatchMode("Show");
+
+}// j nResults
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,98 @@
+blueHue= 132;
+redHue= 7;
+baseHue=50;
+close("*");
+
+// Hue
+//=================================
+
+ratioArray1 =newArray(1000);
+
+for(i=0; i < 1000; i++){
+ratioArray1[i] =   Math.pow(i/2000,2)*2;
+//ratioArray1[i] =   i/2000;
+}
+
+ratioArray2 =newArray(1000);
+
+for(i=0; i < 1000; i++){
+ratioArray2[i] =  1- (Math.pow(i/2000,2)*2);
+//ratioArray2[i] =  1- i/2000;
+}
+
+ratioArray2=Array.reverse(ratioArray2);
+
+ratioArray=Array.concat(ratioArray1, ratioArray2);
+
+// Saturation
+//=================================
+
+ratioArrayS1 =newArray(1000);
+
+for(i=0; i < 1000; i++){
+ratioArrayS1[i] =   Math.sqr(i/2000)*2;
+//ratioArrayS1[i] =   (i/2000);
+}
+
+ratioArrayS2 =newArray(1000);
+
+for(i=0; i < 1000; i++){
+ratioArrayS2[i] =  (Math.sqr(i/2000)*2);
+//ratioArrayS2[i] =   (i/2000);
+}
+
+ratioArrayS2 = Array.reverse(ratioArrayS2);
+
+ratioArrayS=Array.concat(ratioArrayS1, ratioArrayS2);
+
+
+for(i=0;i<ratioArrayS.length;i++){
+ratioArrayS[i] = 1- (2*ratioArrayS[i]);
+}
+
+//
+
+Array.show(ratioArrayS);
+
+newImage("Untitled", "RGB white", 1000, 1000, 1);
+run("HSB Stack");
+setSlice(3);
+for(i=0; i<1000;i++){
+for(j=0; j<1000;j++){
+j2=Math.pow((j/1000),1);
+j2=j/1000;
+lum =30+( j2*220);
+setPixel(i,j,lum);
+}
+}
+
+setSlice(2);
+for(i=0; i<1000;i++){
+for(j=0; j<1000;j++){
+indexV =(i/1000)*ratioArrayS.length;
+saturation = ratioArrayS[indexV];
+saturation  =  100+(saturation*155);
+lum =( j/1000*255);
+lum=lum*0.9;
+saturation =saturation -lum;
+setPixel(i,j,saturation );
+}
+}
+
+
+setSlice(1);
+for(i=0; i<1000;i++){
+for(j=0; j<1000;j++){
+indexV =(i/1000)*ratioArray.length;
+ratio = ratioArray[indexV];
+hue = (redHue*(1-ratio)) + (blueHue*(ratio));
+//j2=j/1000;
+//hue = (hue*(1-j2)) + (baseHue*(j2)) ;
+
+setPixel(i,j,hue);
+}
+}
+
+
+run("RGB Color");
+

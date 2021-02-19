@@ -1,0 +1,248 @@
+/*
+imageDIR = getDirectory("Select folder containing multispectral images");
+
+fileList=getFileList(imageDIR);
+
+mspecList=newArray();
+
+for(i=0; i<fileList.length; i++) // list only mspec files
+	if(endsWith(fileList[i], ".mspec")==1)
+		mspecList = Array.concat(mspecList, fileList[i]);
+
+
+
+for(m=0; m<mspecList.length; m++){
+
+
+	print("\\Update3:Processing Image " + (m+1) + " of " + mspecList.length);
+
+	// LOAD MULTISPECTRAL IMAGE
+	//imageString = "select=[" + imageDIR + mspecList[m] + "] image=[Aligned Normalised 32-bit]";
+	imageString = "select=[" + imageDIR + mspecList[m] + "] image=[Linear Normalised Reflectance Stack]";
+	run(" Load Multispectral Image", imageString);
+*/
+
+//setBatchMode(true);
+savePath = getMetadata("Info");
+
+if(endsWith(savePath, ".mspec") == false)
+	savePath = File.openDialog("Select image mspec file");
+
+savePath = replace(savePath, ".mspec", ""); // replace .txt with either .roi or .zip as required
+
+
+//-------Rescale Image------------
+imTitle = getTitle();
+
+run("Multispectral Image Scaler", "pixels=6");
+refID = getImageID();
+
+//-----------------------------LIST ROIs-----------------------
+
+roiList = newArray();
+roiLocs = newArray();
+roiFullList = newArray();
+nROIs = roiManager("count");
+
+for(j=0; j<nROIs; j++){
+	roiManager("Select", j);
+	tStr = getInfo("selection.name");
+	roiFullList = Array.concat(roiFullList, tStr);
+	if(startsWith(tStr, "Scale Bar") == false){ // only measure ROIs which aren't scale bars
+		roiList = Array.concat(roiList, tStr);
+		roiLocs = Array.concat(roiLocs, j);
+	}
+}
+
+//--------Egg-specific check-------------
+if(roiList.length != 1)
+	exit("Multiple ROIs. Please select just one egg in this image using the egg selection tool");
+if(startsWith(roiList[0], "egg") == false)
+	exit("Not an egg? Please select just one egg in this image using the egg selection tool");
+
+roiManager("select", roiLocs[0]);
+
+
+run("Set Measurements...", "fit shape redirect=None decimal=9");
+run("Measure");
+
+length = getResult("Major", nResults-1);
+selectWindow("Results");
+run("Close");
+
+selectImage(refID);
+
+while(length > 245){
+	run("Enlarge...", "enlarge=254");
+	length=length-254;
+}
+
+ts = "enlarge=" + length;
+run("Enlarge...", ts);
+
+
+roiManager("add");
+roiManager("Deselect");
+roiManager("select", newArray(roiLocs[0], roiManager("count")-1)  );
+roiManager("XOR");
+roiManager("add");
+roiManager("Deselect");
+roiManager("select", roiManager("count")-2  );
+roiManager("delete");
+roiManager("select", roiManager("count")-1  );
+roiManager("rename", "background");
+roiManager("Deselect");
+
+
+bgROI = roiManager("count")-1;
+
+
+//-----------Output BG image--------------
+roiManager("select", roiManager("count")-1  );
+run("Duplicate...", "duplicate");
+setBackgroundColor(0, 0, 0);
+run("Clear Outside", "stack");
+run("Square Root", "stack");
+setMinAndMax(0, 10);
+setSlice(3);
+run("Add Slice");
+setSlice(4);
+run("Set...", "value=10 slice");
+run("Set Label...", "label=Alpha");
+run("8-bit");
+ts = savePath + "_background.png";
+saveAs("PNG", ts);
+close();
+
+//-----------Output Egg image--------------
+roiManager("select", roiLocs[0]);
+run("Duplicate...", "duplicate");
+setBackgroundColor(0, 0, 0);
+run("Clear Outside", "stack");
+run("Square Root", "stack");
+setMinAndMax(0, 10);
+setSlice(3);
+run("Add Slice");
+setSlice(4);
+run("Set...", "value=10 slice");
+run("Set Label...", "label=Alpha");
+run("8-bit");
+ts = savePath + "_egg1.png";
+saveAs("PNG", ts);
+close();
+
+
+run("Convert to Cone Catch", "model=[iPad2 CIE 1931 D65 ]");
+xyzID = getImageID();
+run("XYZ to CIELAB 32Bit");
+labID = getImageID();
+
+//--------------COLOUR & LUM DIFFERENCE---------------
+
+roiManager("select", roiLocs[0]);
+setSlice(1);
+getStatistics(area, eggMeanLum);
+roiManager("select", bgROI);
+setSlice(1);
+getStatistics(area, bgMeanLum);
+
+lumDiff = abs(eggMeanLum - bgMeanLum);
+
+
+roiManager("select", roiLocs[0]);
+setSlice(2);
+getStatistics(area, eggMeanA);
+roiManager("select", bgROI);
+setSlice(2);
+getStatistics(area, bgMeanA);
+
+roiManager("select", roiLocs[0]);
+setSlice(3);
+getStatistics(area, eggMeanB);
+roiManager("select", bgROI);
+setSlice(3);
+getStatistics(area, bgMeanB);
+
+colDiff = pow( pow(eggMeanA - bgMeanA,2) + pow(eggMeanB - bgMeanB,2) , 0.5);
+
+
+//--------------EDGE DISRUPTION---------------
+
+setSlice(1);
+
+roiManager("Deselect");
+roiManager("select", roiLocs[0] );
+
+run("GabRat Disruption", "number_of_angles=4 sigma=3 gamma=1 frequency=2 label=[label]");
+
+disruption = getResult("GabRat", 0);
+selectWindow("Results");
+run("Close");
+
+
+
+// calculate pattern energy difference
+
+//run("DoG Bandpass");
+ts = "path=[" +savePath + "_]";
+run("DoG Bandpass", ts);
+
+heads = String.getResultsHeadings();
+heads = split(heads, "\t");
+
+if(nResults != 2)
+	exit("Expecting to see two results - egg vs background");
+
+PED = 0;
+PSD = 0;
+
+for(i=0; i<heads.length; i++){
+	if(startsWith(heads[i], "Energy_") == 1)
+		PED += abs( getResult(heads[i], 0) - getResult(heads[i], 1) );
+
+	if(startsWith(heads[i], "Skew_") == 1)
+		PSD += abs( getResult(heads[i], 0) - getResult(heads[i], 1) );
+}
+
+selectWindow("Results");
+run("Close");
+
+
+if(isOpen("Egg Results") == 1)
+	IJ.renameResults("Egg Results", "Results");
+
+row=nResults();
+
+
+imData = split(imTitle, "_");
+if(imData.length == 5){
+	setResult("Seeker ID", row, imData[0]);
+	setResult("Egg ID", row, imData[1]);
+	setResult("Detection Distance (m)", row, imData[2]);
+	setResult("Detection Time (s)", row, parseFloat(imData[3])*60 + parseFloat(imData[4]));
+} else {
+	setResult("Label", row, imTitle);
+}
+
+setResult("Luminance diff", row, lumDiff);
+setResult("Colour diff", row, colDiff);
+setResult("Edge Disruption", row, disruption);
+setResult("Pattern energy diff", row, PED);
+//setResult("Pattern skew diff", row, PSD);
+
+
+IJ.renameResults("Results", "Egg Results");
+
+setBatchMode(false);
+
+close();
+close();
+close();
+//run("Close All");
+
+//}//m
+
+
+run("Input/Output...", "jpeg=95 gif=-1 file=.csv use_file copy_row save_column save_row");
+
+

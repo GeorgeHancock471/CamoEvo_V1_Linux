@@ -1,0 +1,133 @@
+/*____________________________________________________________________
+
+	Title: ImageGA alpha V15
+	Authors:  George Hancock 
+	Date: 20/09/2020
+	
+.................................................................................................................
+
+Description:
+''''''''''''''''''''''''''''''''
+This code allows the user to run a genetic algorithm that will run for the number of generation specified and
+the mutation rate, mutation distribution, mutation strength and gene crossover system specified by the user. Note this algorithm
+will only operate with population sizes divisable by 6.
+
+Within each generation the top 2/3rds within the population will remain, with the offspring of the top 1/3 being
+used to refill the population.
+
+This system will automatically wait for up to one month for the fitness values to arrive, with this demo. You can setup a plugin of your choice to run after 
+
+Changelog: It has now been updated to be able to use .txt as for survival and for the Generations.
+
+Changelog: Added customisable breeding pools and the hungarian mating system.
+
+Changelog: Added more customisable breeding pools and new mutation and crowd operator variables.
+
+Changelog: Added pedigrees and removed .csv compatibility outside of templates and survival data.
+
+Changelog: Changed so that all versions run using LITE, allowing for ease of customisation. 
+
+*/
+
+
+
+
+
+
+
+// (1) Run the Interface
+//------------------------------------------------------------------------------------------------------------------------
+
+run("ImageGA Interface");
+
+//===================================================================
+
+
+
+// (2) Select Calculator
+//------------------------------------------------------------------------------------------------------------------------
+FitCalculators= newArray();
+
+FitCalcDirect = getDirectory("plugins") + "ImageGA/Fitness Calculators/";
+
+	if(File.exists(FitCalcDirect ) == 0) {
+		File.makeDirectory(FitCalcDirect );
+	}
+
+
+FitCalcList=getFileList(FitCalcDirect);
+
+for(i=0; i<FitCalcList.length; i++) { // list all .txt files
+
+	if(endsWith(FitCalcList[i], ".txt")==1)
+
+		FitCalculators = Array.concat(FitCalculators, FitCalcList[i]);
+}
+
+Dialog.create("Choose a Fitness Calculator");
+	Dialog.addMessage("________________Choose Calculator___________________");
+		Dialog.addMessage("Select the calculator from the 'Fitness Calculators' directory you would like to use.");
+		Dialog.addMessage("If you would like to use a Calculator independent from Image J, then select 'No Calculator'");
+		Dialog.addChoice("", FitCalculators, FitCalculators[0]);
+	Dialog.show();
+
+FitnessCalculator = Dialog.getChoice();
+
+FitnessCalculator = replace(FitnessCalculator, ".txt", "");  
+FitnessCalculator = replace(FitnessCalculator, "_", " ");  
+
+//===================================================================
+
+
+
+// (3) Get Population Location
+//------------------------------------------------------------------------------------------------------------------------
+settingsFilePath = getDirectory("plugins") + "Tools/PopulationLocation.txt";
+
+
+if(File.exists(settingsFilePath) == 1){
+	settingsString=File.openAsString(settingsFilePath);	// open txt data file
+	defaultSettings=split(settingsString, "\n");
+} 
+
+CheckDirectory = defaultSettings[0];
+print(CheckDirectory);
+
+//====================================================================
+
+// (4) Run LITE and Calculator until no new files are made.
+//------------------------------------------------------------------------------------------------------------------------
+
+		x=1;
+		y1= getFileList(CheckDirectory);
+		y1 = y1.length;
+
+		y2= getFileList(CheckDirectory);
+		y2 = y2.length;
+
+while(x==1){
+
+run(FitnessCalculator);
+
+DirectoryString= "select=[" + CheckDirectory+ "]";
+
+run("ImageGA LITE noPrint", DirectoryString);
+
+		y1= getFileList(CheckDirectory);
+		y1 = y1.length;
+
+	if(y1>y2){
+
+		y2= getFileList(CheckDirectory);
+		y2 = y2.length;
+
+	} else {
+
+	x=0;
+
+	}
+
+
+}
+
+run("Fitness Plotter(TXT)", DirectoryString);

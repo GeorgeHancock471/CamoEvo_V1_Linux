@@ -1,0 +1,870 @@
+// TestPoint
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+function TestPoint(Title) {
+Dialog.createNonBlocking("TestPoint");
+Dialog.createNonBlocking("Did " + Title + " work?");
+Dialog.show();
+
+}
+
+
+
+// Index
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+  function index(a, value) {
+      for (i=0; i<a.length; i++)
+          if (a[i]==value) return i;
+      return -1;
+  }
+
+
+function TestPoint(num) {
+Dialog.createNonBlocking(num);
+Dialog.show();
+}
+
+
+PopLocal = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
+PopLocation = File.openAsString(PopLocal);
+PopLocation=split(PopLocation, "\n");
+PopLocation = PopLocation[0];
+PopLocation = getDirectory("plugins")+PopLocation;
+
+PopulationSet = PopLocation+"Population Settings.txt";
+PopulationSettings = File.openAsString(PopulationSet );
+PopulationSettings = split(PopulationSettings, "\n");
+
+
+TargetSet = split(PopulationSettings[0],"\t");
+TargetSetting = TargetSet[1];
+
+
+
+PatternTemplate = getDirectory("plugins") + "2 CamoReq/PatternTemplate.txt";
+
+GenesString=File.openAsString(PatternTemplate);	// open txt data file
+GenesRows=split(GenesString, "\n");
+Var0 = newArray();
+Var1 =  newArray();
+Var2 =  newArray();
+Var3 =  newArray();
+Var4 =  newArray();
+Var5 =  newArray();
+
+Var6 =  newArray();
+Var7 =  newArray();
+Var8 = newArray();
+Var9 =  newArray();
+Var10 =  newArray();
+Var11 =  newArray();
+
+Var12 =  newArray();
+Var13 = newArray();
+Var14 =  newArray();
+Var15 =  newArray();
+Var16 =  newArray();
+Var17 =  newArray();
+
+Var18 =  newArray();
+Var19 =  newArray();
+Var20 =  newArray();
+Var21 =  newArray();
+Var22 =  newArray();
+Var23 =  newArray();
+Var24 =  newArray();
+
+
+Temp = split(GenesRows[0],"\t");
+v0=index(Temp, "ID");
+v1=index(Temp, "pttn x");
+v2=index(Temp, "pttn y");
+v3=index(Temp, "pttn width");
+v4=index(Temp, "pttn aspect ratio");
+v5=index(Temp, "pttn angle");
+v6=index(Temp, "pttn coverage");
+v7=index(Temp, "pttn CS sigma");
+v8=index(Temp, "pttn CS height");
+v9=index(Temp, "pttn CS angle");
+v10=index(Temp, "speckling intensity");
+v11=index(Temp, "speckling sigma");
+v12=index(Temp, "EE intensity");
+v13=index(Temp, "EE sigma");
+v14=index(Temp, "pttn L");
+v15=index(Temp, "pttn A");
+v16=index(Temp, "pttn B");
+v17=index(Temp, "top L");
+v18=index(Temp, "top A");
+v19=index(Temp, "top B");
+v20=index(Temp, "bottom L");
+v21=index(Temp, "bottom A");
+v22=index(Temp, "bottom B");
+v23=index(Temp, "col sigma");
+v24=index(Temp, "col height");
+
+
+
+
+for(i=1; i<GenesRows.length; i++){
+Temp = split(GenesRows[i],"\t");
+
+Var0 = Array.concat(Var0,Temp[v0]);
+Var1 = Array.concat(Var1,Temp[v1]);
+Var2 = Array.concat(Var2,Temp[v2]);
+Var3 = Array.concat(Var3,Temp[v3]);
+Var4 = Array.concat(Var4,Temp[v4]);
+Var5 = Array.concat(Var5,Temp[v5]);
+Var6 = Array.concat(Var6,Temp[v6]);
+Var7 = Array.concat(Var7,Temp[v7]);
+Var8 = Array.concat(Var8,Temp[v8]);
+Var9 = Array.concat(Var9,Temp[v9]);
+Var10 = Array.concat(Var10,Temp[v10]);
+Var11 = Array.concat(Var11,Temp[v11]);
+Var12 = Array.concat(Var12,Temp[v12]);
+Var13 = Array.concat(Var13,Temp[v13]);
+Var14 = Array.concat(Var14,Temp[v14]);
+Var15 = Array.concat(Var15,Temp[v15]);
+Var16 = Array.concat(Var16,Temp[v16]);
+Var17 = Array.concat(Var17,Temp[v17]);
+Var18 = Array.concat(Var18,Temp[v18]);
+Var19 = Array.concat(Var19,Temp[v19]);
+Var20 = Array.concat(Var20,Temp[v20]);
+Var21 = Array.concat(Var21,Temp[v21]);
+Var22 = Array.concat(Var22,Temp[v22]);
+Var23 = Array.concat(Var23,Temp[v23]);
+Var24 = Array.concat(Var24,Temp[v24]);
+
+}
+
+
+
+
+
+for(j = 0; j<GenesRows.length-1; j++){
+
+
+
+setBatchMode(true);
+//setBatchMode(false);
+
+
+while(roiManager("count") > 0){
+	roiManager("select", 0);
+	roiManager("Delete");
+}
+
+
+
+if(!isOpen("target")){
+if(TargetSetting == "Target_Custom"){
+
+TargetPath = PopLocation+ TargetSetting +".png";
+open(TargetPath);
+rename("target");
+
+} else{
+
+TargetPath = getDirectory("plugins") + "1 CamoEvo/Targets/" + TargetSetting +".png";
+open(TargetPath);
+rename("target");
+}
+
+}
+
+if( TargetSetting=="Target_Cricket" ||  TargetSetting=="Target_Toad" ||  TargetSetting=="Target_Newt" ||  TargetSetting=="Target_Moth" ||  TargetSetting=="Target_Crab" ){
+
+
+open(getDirectory("plugins") + "1 CamoEvo/Targets/" + TargetSetting + "_Eyes.png");
+rename("target_eyes");
+
+
+open(getDirectory("plugins") + "1 CamoEvo/Targets/" + TargetSetting + "_Luma.png");
+rename("target_luma");
+
+open(getDirectory("plugins") + "1 CamoEvo/Targets/" + TargetSetting + "_Shader.png");
+rename("target_shader");
+
+open(getDirectory("plugins") + "1 CamoEvo/Targets/" + TargetSetting + "_Outline.png");
+rename("target_outline");
+
+}
+
+
+
+
+
+if(j>0)
+	run("Select None");
+
+canvasW = 400;
+topY = 50; // y coordinate of the top of the image
+
+
+// ------------------- Pattern Variables-------------------
+patX = parseFloat(Var1[j]); // x (specified pattern x coord)
+patY = parseFloat(Var2[j]);  // y (specified pattern y coord)
+patW = parseFloat(Var3[j]);  // scale of the pattern
+patH = parseFloat(Var4[j]);  // aspect ratio of pattern (stretches pattern, turns spots to stripes)
+patR = parseFloat(Var5[j]);  // pattern rotation
+patT = parseFloat(Var6[j]);  // pattern threshold (percentage of image covered by pattern)
+
+csS = parseFloat(Var7[j]);  // countershading sigma (i.e. level of blurring)
+csH = parseFloat(Var8[j]); // countershading height/radius 
+csR = parseFloat(Var9[j]);  // countershading pattern rotation angle
+
+//------------------------Speckling Variables-------------------------
+noiL = parseFloat(Var10[j]);  // level of speckling noise (SDs around 1)
+noiS = parseFloat(Var11[j]); // speckling noise sigma
+
+//-------------------------Enhanced Edge Variables------------------------
+
+eeL = parseFloat(Var12[j]);  // intensity/level of enhanced edge
+eeS = parseFloat(Var13[j]);  // enhanced edge sigma
+
+
+// ------------------- Colour Variables-------------------
+lMin = 0;
+lMax = 75;
+aMin = -20;
+aMax = 25; // approximate values from background image - should be background-specific, e.g. 2-5 SDs away from image mean
+bMin = -2;
+bMax = 22;
+
+lMin = 0;
+lMax = 75;
+aMin = -20;
+aMax = 25; // approximate values from background image - should be background-specific, e.g. 2-5 SDs away from image mean
+bMin = -2;
+bMax = 22;
+
+
+
+
+pcL = parseFloat(Var14[j]);  // pattern colour
+pcA = parseFloat(Var15[j]); 
+pcB = parseFloat(Var16[j]); 
+
+tcL = parseFloat(Var17[j]);  // top colour
+tcA = parseFloat(Var18[j]); 
+tcB = parseFloat(Var19[j]); 
+
+bcL = parseFloat(Var20[j]);  // bottom colour
+bcA = parseFloat(Var21[j]); 
+bcB = parseFloat(Var22[j]); 
+
+tcS = parseFloat(Var23[j]); // top colour sigma (i.e. level of blurring)
+tcH = parseFloat(Var24[j]);  // top colour height/radius 
+
+
+
+//----------------------------Transforming variables to required ranges----------------------------------
+
+
+
+
+patWmax = 500;
+patWmin = 15;
+patW = patW*(patWmax-patWmin) + patWmin;
+
+patHmax = patW;
+patHmin = 15;
+patH = patH*(patHmax-patHmin) + patHmin;
+
+patXmax = 1980-patW;
+patXmin = 20;
+patX = patX*(patXmax-patXmin) + patXmin;
+
+patYmax = 1980-patH;
+patYmin = 20;
+patY = patY *(patYmax-patYmin) + patYmin;
+
+
+
+
+patR = 360*sin(PI*patR); //transform to angle (degrees)
+
+csSmax = canvasW/2;
+csSmin = 1;
+csS = csS*(csSmax-csSmin) + csSmin;
+
+csHmax = canvasW-topY; 
+csHmin = topY;
+csH = csH*(csHmax-csHmin) + csHmin;
+
+csR = 360*sin(PI*patR); //transform to angle (degrees)
+
+
+pcL = pcL*(lMax-lMin) + lMin;
+pcA = pcA*(aMax-aMin) + aMin;
+pcB = pcB*(bMax-bMin) + bMin;
+
+tcL = tcL*(lMax-lMin) + lMin;
+tcA = tcA*(aMax-aMin) + aMin;
+tcB = tcB*(bMax-bMin) + bMin;
+
+bcL = bcL*(lMax-lMin) + lMin;
+bcA = bcA*(aMax-aMin) + aMin;
+bcB = bcB*(bMax-bMin) + bMin;
+
+
+
+if( TargetSetting=="Target_Cricket" ||  TargetSetting=="Target_Toad" ||  TargetSetting=="Target_Newt" ||  TargetSetting=="Target_Moth" ||  TargetSetting=="Target_Crab"){
+
+tcSmax = canvasW/2;
+tcSmin = 1;
+tcS = 0.8*tcS*(tcSmax-tcSmin) + tcSmin;
+
+tcHmax = (canvasW)+topY; 
+tcHmin = topY+(canvasW/2);
+tcH = 3*tcH*(tcHmax-tcHmin) + tcHmin;
+
+}
+
+
+eeSmax = canvasW/10; // noise sigma
+eeSmin = 1;
+eeS = eeS*(eeSmax-eeSmin) + eeSmin;
+
+noiSmax = canvasW/14; // noise sigma
+noiSmin = 0.5;
+noiS = noiS*(noiSmax-noiSmin) + noiSmin;
+
+noiLmax = 0.25; // noise intensity (SDs from mean, where mean=1)
+noiLmin = 0;
+noiL = noiL*(noiLmax-noiLmin) + noiLmin;
+
+
+
+
+// --------------------- Pattern generation --------------------------
+
+
+//run("Reaction Diffusion Pattern Generator", "f=&patF k=0.07700 da=0.20000 db=0.10000 noise=&patN max=10000 w=&patW h=&patH");
+
+PatternSheet = getDirectory("plugins") + "2 CamoReq//Patterns/pattern1.jpg";
+
+if(!isOpen("patternSheet")){
+open(PatternSheet);
+//setBatchMode("Show");
+
+selectImage("pattern1.jpg");
+rename("patternSheet");
+}
+
+selectImage("patternSheet");
+
+makeRectangle(patX, patY, patW, patH);
+roiManager("Add");
+run("Duplicate...", "title=[base pattern]");
+run("32-bit");
+
+
+scaleVal = canvasW+100;
+run("Scale...", "x=- y=- width=&scaleVal height=&scaleVal interpolation=Bilinear average create title=pattern");
+makeRectangle(50, 50, canvasW, canvasW);
+run("Crop");
+
+run("Rotate... ", "angle=&patR grid=1 interpolation=Bilinear");
+
+run("Gaussian Blur...", "sigma=1");
+run("Gaussian Blur...", "sigma=1");
+run("Gaussian Blur...", "sigma=1");
+
+
+
+
+if(isOpen("target_eyes")){
+TITLE=getTitle();
+selectImage("target_eyes");
+run("Select All");
+run("Copy");
+selectImage(TITLE);
+setPasteMode("Subtract");
+run("Paste");
+
+}
+
+
+
+
+
+/*
+print("__________________________________");
+print("Pattern Feed rate: " + patF);
+print("Pattern noise: " + patN);
+print("Pattern width: " + patW);
+print("Pattern Height: " + patH);
+print("Pattern Rotation angle: " + patR);
+print("Pattern Threshold: " + patT);
+print("Countershading Height: " + csH);
+print("Countershading Sigma: " + csS);
+print("Speckling Sigma: " + noiS);
+print("Speckling Level (SD): " + noiL);
+*/
+
+
+
+
+
+//---------------------Countershading Gradient Generation-------------------------
+
+newImage("cs", "32-bit black", canvasW, canvasW, 1);
+selectImage("cs");
+wait(10);
+//run("Set...", "value=1");
+makeOval((canvasW/2)-(csH/2),topY-(csH/2),csH,csH);
+
+
+run("Set...", "value=1");
+run("Select None");
+run("Gaussian Blur...", "sigma=&csS");
+run("Rotate... ", "angle=&csR grid=1 interpolation=Bilinear");
+
+
+
+imageCalculator("Multiply", "pattern","cs");
+
+
+//Bilateral
+if( TargetSetting=="Target_Cricket" ||  TargetSetting=="Target_Toad" ||  TargetSetting=="Target_Newt" ||  TargetSetting=="Target_Moth" ||  TargetSetting=="Target_Crab"){
+
+TITLE=getTitle();
+if(TargetSetting=="Target_Crab"){
+makeRectangle(0, 0, canvasW, (canvasW/2)+15);
+} else {
+makeRectangle(0, 0, canvasW, canvasW/2);
+}
+
+
+run("Duplicate...", "title=mirror");
+run("Flip Vertically");
+run("Select All");
+
+
+
+
+selectImage(TITLE);
+run("Select All");
+makeRectangle(0, canvasW/2, canvasW, canvasW/2);
+run("Paste");
+
+if(TargetSetting=="Target_Crab"){
+addString = "image=mirror x=0 y="+(canvasW/2)+15+" opacity=100";
+} else {
+addString = "image=mirror x=0 y="+canvasW/2+" opacity=100";
+}
+
+
+run("Add Image...", addString);
+run("Flatten");
+run("32-bit");
+
+
+TITLE2=getTitle();
+close(TITLE);
+selectImage(TITLE2);
+rename(TITLE);
+
+close("mirror");
+
+
+}
+
+if(isOpen("target_eyes")){
+TITLE=getTitle();
+selectImage("target_eyes");
+run("Select All");
+run("Copy");
+selectImage(TITLE);
+setPasteMode("Subtract");
+run("Paste");
+
+}
+
+
+
+
+makeOval(0,0,canvasW,canvasW);
+getStatistics(area, mean, min, max);
+nBins = 100000;
+getHistogram(values, counts, nBins, min, max);
+
+count = 0;
+tVal = 1;
+target = area*(1-patT);
+for(i=0; i<nBins; i++){
+	count += counts[i];
+	if(count >= target){
+		tVal = values[i];
+		i = nBins;
+	}
+}
+
+tValOld=tVal;
+maxOld=max;
+setThreshold(tVal, max);
+run("Create Selection");
+roiManager("Add");
+
+
+
+
+
+
+//---------------------Colour Generation-------------------------
+
+newImage("col", "32-bit black", canvasW, canvasW, 3);
+run("Select All");
+setSlice(1); // set bottom colours
+run("Set...", "value=&bcL");
+setSlice(2);
+run("Set...", "value=&bcA");
+setSlice(3);
+run("Set...", "value=&bcB");
+
+makeOval((canvasW/2)-(tcH/2),topY-(tcH/2),tcH,tcH);
+setSlice(1); // set top colours
+run("Set...", "value=&tcL");
+setSlice(2);
+run("Set...", "value=&tcA");
+setSlice(3);
+run("Set...", "value=&tcB");
+
+run("Select None");
+setSlice(1); // set top colours
+run("Gaussian Blur...", "sigma=&tcS");
+setSlice(2);
+run("Gaussian Blur...", "sigma=&tcS");
+setSlice(3);
+run("Gaussian Blur...", "sigma=&tcS");
+
+
+
+//Bilateral
+if( TargetSetting=="Target_Cricket" ||  TargetSetting=="Target_Toad" ||  TargetSetting=="Target_Newt" ||  TargetSetting=="Target_Moth" ||  TargetSetting=="Target_Crab"){
+for(i=1;i<=3;i++){
+TITLE="col";
+setSlice(i);
+
+if(TargetSetting=="Target_Crab"){
+makeRectangle(0, 0, canvasW, (canvasW/2) +15);
+}else{
+makeRectangle(0, 0, canvasW, canvasW/2);
+}
+
+
+
+run("Duplicate...", "title=mirror");
+run("Flip Vertically");
+
+if(TargetSetting=="Target_Crab"){
+makeRectangle(0, 0, canvasW, (canvasW/2) -15);
+}else{
+run("Select All");
+}
+
+
+run("Copy");
+setPasteMode("Copy");
+close("mirror");
+
+
+
+
+selectImage(TITLE);
+setSlice(i);
+run("Select All");
+
+
+if(TargetSetting=="Target_Crab"){
+makeRectangle(0, (canvasW/2)+15, canvasW, (canvasW/2) -15);
+}else{
+makeRectangle(0, (canvasW/2), canvasW, canvasW/2);
+}
+
+
+
+run("Paste");
+
+
+
+}
+}
+
+
+
+roiManager("select", 1); // select and apply pattern colour
+setSlice(1);
+run("Set...", "value=&pcL");
+setSlice(2);
+run("Set...", "value=&pcA");
+setSlice(3);
+run("Set...", "value=&pcB");
+
+
+
+
+
+
+
+//TestPoint("pre Edge");
+
+
+//-------------------------------Enhanced Edges------------------------------
+
+// The enhanced edges should get ligher on the lighter surface and darker on the darker
+// and therefore requires measuring the luminance of the two areas
+
+
+selectImage("col");
+setSlice(1);
+makeOval(0,0,canvasW,canvasW);
+getStatistics(ovalArea);
+//makeOval(0,0,400,400);
+roiManager("Add");
+roiManager("select", newArray(2,1));
+roiManager("AND");
+roiManager("Add");
+getStatistics(patternArea);
+
+if(patternArea < ovalArea){
+
+	roiManager("select", newArray(3,2));
+	roiManager("XOR");
+	roiManager("Add");
+	//roi 3 is the background
+
+	roiManager("select",4);
+	getStatistics(area, bgMean);
+	//waitForUser("waiting, bgMean = " + bgMean + " , pcL = " + pcL);
+	
+	if(bgMean > pcL)
+		eeF = 1;
+	else eeF = 0;
+
+	newImage("ee", "32-bit black", 400, 400, 1);
+	if(eeF == 1)
+		run("Set...", "value=1");
+
+	roiManager("Select", 1);
+	if(eeF == 1)
+		run("Set...", "value=0");
+	else run("Set...", "value=1");
+
+
+	run("Select None");
+	run("Gaussian Blur...", "sigma=&eeS");
+	roiManager("Select",1);
+
+	if(eeF  == 1) run("Macro...", "code=v=1-2*(v+0.5)");
+	else run("Macro...", "code=v=1-2*(v-0.5)");
+
+	//run("Macro...", "code=v=v-1");
+	run("Make Inverse");
+
+	if(eeF  == 1) run("Macro...", "code=v=1-2*(v-0.5)");
+	else run("Macro...", "code=v=1-2*(v+0.5)");
+
+
+	run("Select None");
+
+	mStr = "code=v=1+v*" + eeL;
+	run("Macro...", mStr);
+
+	//waitForUser("waiting");
+
+	imageCalculator("Multiply", "col","ee");
+
+}// if pattern area sufficient
+
+
+
+//TestPoint("post Edge");
+
+//TestPoint("1");
+
+//-----------------------------------Random Speckling---------------------------------
+
+newImage("random", "32-bit random", canvasW, canvasW, 1);
+run("Gaussian Blur...", "sigma=&noiS");
+run("Select All");
+
+getStatistics(area, mean, min, max, SD);
+//noiL = 0.2;
+if(mean > 0)
+	mStr =  "code=v=(((v/" + d2s(SD,12) + ")-" + d2s(mean,12) + ")*" + d2s(noiL,12) + ")+1";
+else {
+	mean *= -1;
+	mStr =  "code=v=(((v/" + d2s(SD,12) + ")+" + d2s(mean,12) + ")*" + d2s(noiL,12) + ")+1";
+}
+
+run("Macro...", mStr);
+
+//idea: allow to flip between a single threshold level (i.e. keep pattern with higher pixel values), or switch to selecting an intermediate level, growing from median
+selectImage("col");
+setSlice(1);
+imageCalculator("Multiply", "col","random");
+
+
+
+run("CIELAB 32Bit to RGB24 smooth"); // create RGB colour from CIELAB
+
+
+
+
+run("Spherical Deform"); // wrap around sphere
+
+
+
+rename(Var0[j]);
+
+
+
+
+run("Set... ", "zoom=50 x=200 y=200");
+
+//Clear up uneeded images.
+
+selectImage("col");
+close("col");
+
+selectImage("random");
+close("random");
+
+if(patternArea < ovalArea){
+	selectImage("ee");
+	close("ee");
+
+}
+selectImage("cs");
+close("cs");
+
+selectImage("pattern");
+close("pattern");
+
+selectImage("base pattern");
+close("base pattern");
+
+
+//selectImage("gloss pattern");
+//close();
+
+if(isOpen("Output")){
+selectImage("Output");
+close("Output");
+
+}
+
+
+
+
+wait(10);
+
+selectImage(Var0[j]);
+
+
+run("Invert");
+
+
+//Apply to Target Shape
+//--------------------------
+run("Select All");
+run("Copy");
+close(Var0[j]);
+selectImage("target");
+setPasteMode("Subtract");
+run("Paste");
+rename(Var0[j]);
+
+
+
+
+
+selectImage(Var0[j]);
+roiManager("deselect");
+
+if(isOpen("target_shader")){
+selectWindow("target_shader");
+run("Select All");
+run("Copy");
+selectImage(Var0[j]);
+setPasteMode("Subtract");
+run("Paste");
+}
+
+if(isOpen("target_luma")){
+selectWindow("target_luma");
+run("Select All");
+run("Copy");
+selectImage(Var0[j]);
+setPasteMode("Add");
+run("Paste");
+}
+
+
+if(isOpen("target_outline")){
+
+run("Min...", "value=10");
+selectWindow("target_outline");
+run("Select All");
+run("Copy");
+selectImage(Var0[j]);
+setPasteMode("Transparent-white");
+run("Paste");
+}
+
+
+
+
+//setBatchMode("Show");
+
+
+
+
+//setBatchMode(false);
+
+
+
+
+//waitForUser("waiting");
+
+
+
+
+
+
+}// j nResults
+
+
+close("patternSheet");
+
+
+while(roiManager("count") > 0){
+	roiManager("select", 0);
+	roiManager("Delete");
+}
+
+if(isOpen("target_outline")){
+close("target_outline");
+}
+
+if(isOpen("target_luma")){
+close("target_luma");
+}
+
+if(isOpen("target_shader")){
+close("target_shader");
+}
+
+if(isOpen("target_eyes")){
+close("target_eyes");
+}
+
+
+
+
+
+
