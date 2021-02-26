@@ -1,6 +1,46 @@
+/*____________________________________________________________________
+
+	Title: CamoEvo_Game
+	Authors:  George Hancock 
+	Date: 27/01/2021
+	
+.................................................................................................................
+
+Description:
+''''''''''''''''''''''''''''''''
+Runs the Camouflage Evolution Game part of CamoEvo and has a UI for previewing data output by CamoEvo.
+
+*/
+
+
+setBatchMode(true);
+
+
+
+/*
+..........................................................................................................................................
+
+															Setup
+
+..........................................................................................................................................
+
+*/
+
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 0) General
+//----------------------------------------------------------------------------------------------------------------
+
+
+
+//================================================================
+//Functions
+//================================================================
+
 // TestPoint
 //---------------------------------------------------
-// Allows you to obtain the index of a Value within an Array.
+
 
 function TestPoint(Title) {
 Dialog.createNonBlocking("TestPoint");
@@ -8,6 +48,53 @@ Dialog.createNonBlocking("Did " + Title + " work?");
 Dialog.show();
 
 }
+
+
+// Index
+//---------------------------------------------------
+// Allows you to obtain the index of a Value within an Array.
+
+  function index(a, value) {
+      for (i=0; i<a.length; i++)
+          if (a[i]==value) return i;
+      return -1;
+  }
+
+
+
+//================================================================
+//Population Location
+//================================================================
+
+
+Dialog.create("Choose Directory");
+		Dialog.addMessage("________________Choose Folder___________________");
+		Dialog.addMessage("Select directory of the evolution game population.");
+	Dialog.show();
+
+
+imageDIR = getDirectory("Select folder you wish to use.");
+configFilePath=imageDIR;
+tempString = "select=["+ configFilePath+"]";
+
+
+
+PopLocal = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
+dataFile = File.open(PopLocal);
+print(dataFile, configFilePath );
+File.close(dataFile);
+
+
+
+//================================================================
+//Appearance
+//================================================================
+
+
+setBackgroundColor(50, 50, 50);
+setTool("arrow");
+ToolOld = 0;
+
 
 
 startTimeTest = getTime();
@@ -23,68 +110,143 @@ run("Close");
 }
 
 
-//----------------------------------------------------------------------------------------------------------------
-// 0) Get Scale Settings
-//----------------------------------------------------------------------------------------------------------------
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+LoadingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Loading/01.jpg";
+} else {
+LoadingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Loading/";
+}
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/01.jpg";
+} else {
+EvolvingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Evolving/";
+}
 
 
+
+//----------------------------------------------------------------------------------------------------------------
+// 1) Get Scale Settings
+//----------------------------------------------------------------------------------------------------------------
+
+//=========================
+//Check if Loading is Open
+//=========================
+
+if(isOpen("Loading")){
 selectImage("Loading");
+rename("scale");
+
+}
+
+
+//=========================
+//Get Scale if is Open
+//=========================
+
+
+if(isOpen("scale")){
+run("Image Sequence...", "open=[&LoadingDirectory] sort");
+selectImage("Loading");
+originalPW = getWidth;
+originalPH = getHeight;
+close("Loading");
+
+selectImage("scale");
+fullWidth = getWidth;
+fullHeight = getHeight;
+
+xButtonShift = (fullWidth - originalPW);
+getLocationAndSize(x, y, width, height);
+interfaceX=x;
+interfaceY=y;
+interfaceW=width;
+interfaceH=height;
+
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+rename("Loading");
+
+
+
+} else{
+
+//=========================
+//Get Scale if isn't Open
+//=========================
+
+
+run("Image Sequence...", "open=[&LoadingDirectory] sort");
+selectImage("Loading");
+setBatchMode("Show");
 run("Maximize");
+getLocationAndSize(x, y, windowWidth, windowHeight);
+
+originalPW = getWidth;
+originalPH = getHeight;
+
+fullScale =  screenWidth/windowWidth;
+fullWidth = (getWidth()*fullScale);
+fullHeight = (getHeight);
+
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
+
+xButtonShift = (fullWidth - originalPW);
+
+
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+setLocation(screenWidth/2, 0, screenWidth+50 , windowHeight+50);
+}else{
+setLocation(screenWidth/2, 0, screenWidth , windowHeight);
+}
 getLocationAndSize(x, y, width, height);
 
-xScale=x; // Get Game Scale
-yScale=y;
-wScale=width;
-hScale=height;
 
+interfaceX=x-((width)/2);
+interfaceY=y-10;
+interfaceW=width;
+interfaceH=height;
 
-run("Select All");
-Roi.getBounds(x, y, width, height);
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
-loadX=x;
-loadY=y;
-loadW=width;
-loadH=height;
+}
 
-run("Select None");
-
-
-GameDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Game/";
 
 selectImage("Loading");
 
+
+/*
+..........................................................................................................................................
+
+														Create Game
+
+..........................................................................................................................................
+
+*/
+
+
+//----------------------------------------------------------------------------------------------------------------
+// 0) Setup New Generation
+//----------------------------------------------------------------------------------------------------------------
+
+
+
+//=========================
+//Get Population Settings
+//=========================
+
+GameDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Game/";
 
 
 PopLocal = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
 PopLocation = File.openAsString(PopLocal);
 PopLocation=split(PopLocation, "\n");
 PopLocation = PopLocation[0];
-PopLocation = getDirectory("plugins")+PopLocation;
+PopLocation = PopLocation;
 
-if(!File.exists(GameDirectory+"01_Play.jpg")){
+if(!File.exists(GameDirectory+"01.jpg")){
 exit("Game Screen Img, missing, reinstall suggested");
 }
 
-open(GameDirectory+"01_Play.jpg");
-
-
-
-open(GameDirectory+"02_Black.jpg");
-
-
-if(!File.exists(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png")){
-setBatchMode(false);
-close("*");
-exit("Circle Img, missing, reinstall suggested");
-}
-
-
-open(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png");
-open(getDirectory("plugins") + "1 CamoEvo/Interface/redCircle.png");
-
-
-
-PopulationSet = PopLocation+"Population Settings.txt";
+PopulationSet = PopLocation+"PopulationSettings.txt";
 PopulationSettings = File.openAsString(PopulationSet );
 PopulationSettings = split(PopulationSettings, "\n");
 
@@ -98,36 +260,63 @@ PopSize = PopSize [1];
 TimeOutTime = split(PopulationSettings[4],"\t");
 TimeOutTime = parseFloat(TimeOutTime [1]);
 
-
 numPerSlide = split(PopulationSettings[3],"\t");
 numPerSlide = parseFloat(numPerSlide [1]);
 
+PopulationSet = PopLocation+"PopulationSettings.txt";
+PopulationSettings = File.openAsString(PopulationSet );
+PopulationSettings = split(PopulationSettings, "\n");
+
+
+TargetSet = split(PopulationSettings[0],"\t");
+TargetSetting = TargetSet[1];
 
 
 
+//=========================
+//Get Target Settings
+//=========================
 
-//print("");
-//print("");
-//print("Check Generation");
+TargetChoice = TargetSetting;
+
+TargetDirectory = getDirectory("plugins")+ "1 CamoEvo/Targets/";
+
+TargetSettings = File.openAsString(TargetDirectory+"Target_Settings.txt");
+TargetSettingsRows = split(TargetSettings , "\n");
+
+for(i=0; i<TargetSettingsRows.length; i++){
+temp = TargetSettingsRows[i];
+
+if(startsWith(temp, TargetChoice)){
+TargetSetting = temp;
+}
+
+}
+
+TargetChoiceSettings = split(TargetSetting, "\t");
+
+TargetChoiceScale = parseFloat(TargetChoiceSettings[2]);
+TargetPatternChoice = TargetChoiceSettings[3];
+TargetChoiceMinRotation = parseFloat(TargetChoiceSettings[5]);
+TargetChoiceMaxRotation = parseFloat(TargetChoiceSettings[6]);
+
+
 startTimeTest = getTime();
 TestTime= getTime()- startTimeTest;
 
-//print(TestTime/1000);
 
 
 
+//=========================
+//Check for Generation 0
+//=========================
 
-
-
-
-//----------------------------------------------------------------------------------------------------------------
-// 1) Make Sure there is Generation 0
-//----------------------------------------------------------------------------------------------------------------
-
+//If there is no Generation 0 Create one
+//----------------------------------------------
 
 if(!File.exists(PopLocation+"generation_0.txt")){
 
-run("Camo Evo ImageGA Interface");
+run("CamoEvo ImageGA Relay");
 
 }
 
@@ -148,34 +337,15 @@ checkB1 = checkB1.length;
 checkB2 = getFileList(CheckDirectory);
 checkB2 = checkB2.length;
 
+
+
 while(checkA==1){
 
+setBatchMode(true);
 
-
-
-TestTime= getTime()- startTimeTest;
-
-//print(TestTime/1000);
-
-
-//print("");
-//print("");
-//print("Generate Patterns");
-startTimeTest = getTime();
-
-TestTime= getTime()- startTimeTest;
-
-//print(TestTime/1000);
-
-//----------------------------------------------------------------------------------------------------------------
-// 2) Generate Patterns
-//----------------------------------------------------------------------------------------------------------------
-
-
-//--------------------------------------------
+//===============================
 //Get Current Generation
 //===============================
-
 
 CheckDirectory = PopLocation;
 
@@ -206,24 +376,33 @@ GenName = "generation_" + GenNumber + txt;
 SurvGenNum= CheckDirectory + "generation_" + GenNumber +"_survival" + txt;
 
 runCount=runCount+1;
+
+
+//===============================
+//Run Evolving Animation
+//===============================
+
+if(!isOpen("Evolving")){
+run("Image Sequence...", "open=[&EvolvingDirectory] sort");
+}
+
 if(runCount==0){
 
 if(isOpen("Evolving")){
 
 selectImage("Evolving");
+setBatchMode("show");
+run("Maximize");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 for(i=0;i<4;i++){
 setSlice(i+1);
 
  setFont("Caldibri ", 52, "bold");
  setColor( "#16150D");
 
- stringB= "                                         ";
+fillRect(154 + (xButtonShift/2), 426, 1176, 204);
 
-drawString(stringB, 740, 552, "#16150D");
-
-
-
- setColor(255,255, 255);
+ setColor("white");
 
 
 
@@ -231,23 +410,30 @@ setJustification("center");
 
  stringT= " Evolving Generation "+GenNumber+" ... ";
 
- drawString(stringT, 740, 552, "#16150D");
+ drawString(stringT, 740 + (xButtonShift/2), 552, "#16150D");
 
 
 
 }
 
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 setBatchMode("Show");
-setLocation(xScale, yScale, wScale, hScale);
 run("Maximize");
- run("Animation Options...", "speed="+6);
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
+
+if(isOpen("Evolving")){
+selectImage("Evolving");
+run("Animation Options...", "speed="+6);
 doCommand("Start Animation");
 }
 }
+}
 
 
-
+//===============================
+//Hide Loading Animation
+//===============================
 
 if(isOpen("Loading")){
 selectImage("Loading");
@@ -256,7 +442,9 @@ setBatchMode("hide");
 
 
 
-
+//===============================
+//Check if Generation Exists
+//===============================
 
 if(File.exists(GenNum)){
 GenerationString=File.openAsString(GenNum);	// open txt data file
@@ -266,36 +454,35 @@ PatternTemplate = getDirectory("plugins") + "2 CamoReq/PatternTemplate.txt";
 
 
 
-//--------------------------------------------
-//Sort Out Existing Patterns
-//===============================
+//==================================
+//Create Population
+//==================================
 
-//------------------------------------------------
-// Make Pattern Directory
-//-------------------------------------------------
+
+//Create Image Directory
+//---------------------------------
+
 fold = "GenPat_" + GenNumber;
 foldOld = "GenPat_" + GenNumber-1;
 PatternPath = CheckDirectory + fold;
 PriorPath = CheckDirectory + foldOld;
 
 
+
+
+//Work out existing patterns
+//---------------------------------
 //IF there is already patterns for that Generation,don't remake them.
 // If the file already exists and its size == the desired pop size then don't make pattersn.
+
+
 CheckLength = getFileList(PatternPath);
 
-
-
-
 if(CheckLength.length<PopSize || !File.exists(PatternPath)) {
-
-
 File.makeDirectory(PatternPath );
 
-
-setBatchMode(true);
-
-if(GenNumber>0){ // if it is generation 1 or higher it will check which individuals have survived without mutating, and save them without remaking them. 
-				// this preserves the exact same phenotype.
+if(GenNumber>0){ 	 // if it is generation 1 or higher it will check which individuals have survived without mutating, and save them without remaking them. 
+					 // this preserves the exact same phenotype.
 				
 				
 notMade=newArray();
@@ -328,6 +515,7 @@ rename(newName);
 }
 
 
+
 dataFile = File.open(PatternTemplate);  // writes the pattern genome to a temporary text file, which the target generator then uses.
 
 	print(dataFile, GenerationRows[0]);
@@ -340,6 +528,9 @@ dataFile = File.open(PatternTemplate);  // writes the pattern genome to a tempor
 
 }
 
+
+//Copy all if Gen = 0
+//---------------------------------
 
 if(GenNumber==0){ // if it is generation 0 it will need to generate all the patterns no matter what.
 
@@ -354,20 +545,27 @@ if(GenNumber==0){ // if it is generation 0 it will need to generate all the patt
 }
 
 
-//--------------------------------------------
-//Generate Patterns
-//========================
-if(TargetSetting=="Target_Egg"){
+
+
+//Create Patterns
+//---------------------------------
+
+
+
+if(TargetPatternChoice =="egg"){
 run("Generate Eggs");
 }else{
 run("Generate Targets");
 }
 
 
+
+
+//Save Patterns
+//---------------------------------
+
 WinNam = getList("image.titles");
 Win = lengthOf(WinNam);
-
-
 
 for ( i=0; i<Win; i++ ) { 
 
@@ -392,39 +590,20 @@ close(WinNam[i]+".tif");
 
 
 
-} else {
-
-
-
 }
 
 
 PatternCombinedPath = CheckDirectory + "Combined_"+fold+"/";
 
 
-
-TestTime= getTime()- startTimeTest;
-
-//print(TestTime/1000);
-
-
-//print("");
-//print("");
-//print("Load Backgrounds");
-startTimeTest = getTime();
-
-TestTime= getTime()- startTimeTest;
-
-//print(TestTime/1000);
-
-
 //----------------------------------------------------------------------------------------------------------------
-// 3) LoadBackgrounds
+// 1) Setup Game Slides
 //----------------------------------------------------------------------------------------------------------------
 
-//----------------------------------------------
-//Generate Random Background and Pattern Orders
-//==============================================
+
+//================================================
+//Generate Random Pattern and Background Orders
+//================================================
 
 
 BackgroundsDirectory = PopLocation+"Backgrounds/";
@@ -433,8 +612,8 @@ BackgroundList  =  getFileList(BackgroundsDirectory);
 PatternPath = CheckDirectory + fold;
 PatternList = getFileList(PatternPath);
 
-// Targets
-
+// Target  Orders
+//---------------------------------
 randOrder=newArray(PatternList.length);
 
 
@@ -453,13 +632,8 @@ randomTargets  = Array.concat(randomTargets , PatternList[str]);
 }
 
 
-
-
-
-// Backgrounds
-
-
-
+// Background  Orders
+//---------------------------------
 if(PatternList.length > BackgroundList.length){
 extendLoop = PatternList.length / BackgroundList.length;
 } else {
@@ -503,12 +677,10 @@ randomBackgrounds = Array.concat(randomBackgrounds, BackgroundList[str]);
 
 
 
-//setBatchMode("exit and display");
-//--------------------------------------------
-//Get Scalings Using First
-//========================
 
-
+//================================================
+//Crop the Background Images to Insure Fit
+//================================================
 
 open(BackgroundsDirectory + randomBackgrounds[0]);
 
@@ -516,16 +688,16 @@ run("Select All");
 Roi.getBounds(x, y, width, height);
 
 if(height>width){
-imageScale = width/loadW;
+imageScale = width/originalPW;
 }
 
 if(width>height){
-imageScale = height/loadH;
+imageScale = height/originalPH;
 }
 
 
-cropW=loadW*imageScale ;
-cropH=loadH*imageScale;
+cropW=originalPW*imageScale ;
+cropH=originalPH*imageScale;
 cropX=0;
 cropY=0;
 if(height>cropH){
@@ -554,8 +726,7 @@ run("Copy");
 setPasteMode("Copy");
 
 
-newImage("GameSlides", "RGB black",  cropW, cropH, ((randomBackgrounds.length) / (numPerSlide))+1);
-
+newImage("GameSlides", "RGB black",  originalPW, originalPH, ((randomBackgrounds.length) / (numPerSlide))+1);
 
 setSlice(2);
 
@@ -567,11 +738,9 @@ close("slide0");
 
 
 
-//--------------------------------------------
-//Set all of them to slides
-//==============================
-
-
+//================================================
+//Apply Backgrounds to Slides
+//================================================
 
 for(i=1;i<randomBackgrounds.length / (numPerSlide) ;i++){
 
@@ -609,45 +778,21 @@ TestTime= getTime()- startTimeTest;
 
 
 //----------------------------------------------------------------------------------------------------------------
-// 4) Add Targets
+// 2) Add Targets to Slides
 //----------------------------------------------------------------------------------------------------------------
 
 
-
-
-//--------------------------------------------
-//If slides are already there.
-//==============================
-
+//================================================
+//Save Directory
+//================================================
 File.makeDirectory(PatternCombinedPath);
 
-PopulationSet = PopLocation+"Population Settings.txt";
-PopulationSettings = File.openAsString(PopulationSet );
-PopulationSettings = split(PopulationSettings, "\n");
-
-
-TargetSet = split(PopulationSettings[0],"\t");
-TargetSetting = TargetSet[1];
-
-
-TargetChoice = TargetSetting;
-
-TargetDirectory = getDirectory("plugins")+ "1 CamoEvo/Targets/";
-
-TargetScales = File.openAsString(TargetDirectory+"Target_Scales.txt");
-TargetScalesRows = split(TargetScales, "\n");
-
-for(i=0; i<TargetScalesRows.length; i++){
-temp = split(TargetScalesRows[i], "\t");
-
-if(startsWith(temp[0], TargetChoice)){
-TargetChoiceScale= parseFloat(temp[1]);
-}
-
-}
 
 
 
+//================================================
+//Get Measures
+//================================================
 selectImage("GameSlides");
 run("Select All");
 Roi.getBounds(x, y, width, height);
@@ -656,59 +801,44 @@ run("Select None");
 bgWidth= width;
 bgHeight= height;
 
-screenScale = width/2600;
-targetScale=TargetChoiceScale*screenScale;
 
-//--------------------------------------------
-//Add Target Point
-//=================================================
+targetScale=TargetChoiceScale;
 
-//setBatchMode("show");
-
-
+//================================================
+//Add Wait Slide
+//================================================
+// Adds the slide with the cursor oval
 
 setSlice(1);
 setColor("White");
 setLineWidth(5);
 
-setFont("Caldibri ", 72, "bold");
+setFont("Caldibri ", 52, "bold");
  setColor( "White");
  stringI= "Place your your cursor inside the circle";
 drawString(stringI, bgWidth/2, (bgHeight/2)-350);
 
-setFont("Caldibri ", 62, "bold");
+setFont("Caldibri ", 42, "bold");
  stringI= "(Don't move your cursor until you spot the target)";
 drawString(stringI, bgWidth/2, (bgHeight/2)-210);
 
-
-
-ovalW=50;
-ovalH=50;
-ovalX= (bgWidth/2)-(ovalW/2);
-ovalY= (bgHeight/2)-(ovalH/2);
-ovalCX = (bgWidth/2);
-ovalCY = (bgHeight/2);
+ovalW=30;
+ovalH=30;
+ovalX= (getWidth/2)-(ovalW/2) ;
+ovalY= (getHeight/2)-(ovalH/2);
+ovalCX = (getWidth/2);
+ovalCY = (getHeight/2);
 
 drawOval(ovalX,ovalY,ovalW,ovalH);
 
 
+//================================================
+//Apply Targets to Slides
+//================================================
 
 
-
-
-
-getCursorLoc(x, y, z, modifiers);
-
-
-
-
-
-//--------------------------------------------
-//Apply targets at the right scale and coordinates
-//=================================================
-
-//setBatchMode("exit and display");
-
+// Record Values
+//---------------------------------
 
 targetXcoords = newArray();
 targetYcoords = newArray();
@@ -721,13 +851,14 @@ patternDifference = newArray();
 colourDifference = newArray();
 GabRatArray = newArray();
 
-//File.makeDirectory(CheckDirectory+"Recordings/");
 
-
-for(i=0; i<(PopSize); i++){
+for(i=0; i<(PopSize); i++){   // Loop
 
 TargetPath = CheckDirectory + fold + "/" + randomTargets[i];
 
+
+// Open and Rescale Target
+//---------------------------------
 open(TargetPath);
 rename("Target");
 
@@ -744,52 +875,11 @@ run("Scale...", ts);
 run("Canvas Size...", ts2);
 
 
-//----------------------------------------------------------------
-//Modify Rotation and Flip for Triangle to mimic moth orientation
-//==================================================================
-			if(TargetChoice=="Target_Triangle" || TargetChoice=="Target_Moth"){
 
-			directionArray =newArray(1,-1);
-			rotationDir = directionArray[parseInt(random())];
+// Flip & Rotate the Target
+//---------------------------------
 
-			if(TargetChoice=="Target_Triangle"){
-			mod = 0;
-				flip=parseInt(random());
-			if(flip==0){
-			flip="none";
-			}
-			if(flip==1){
-			flip="Horiz";
-			run("Flip Horizontally");
-			}
-
-			}
-			if(TargetChoice=="Target_Moth"){
-			mod = -90;
-				flip=parseInt(random());
-			if(flip==0){
-			flip="none";
-			}
-			if(flip==1){
-			flip="Horiz";
-			run("Flip Vertically");
-			}
-
-			}
-
-			rotation = mod +  (75*random()*rotationDir );
-
-
-		
-
-
-//----------------------------------------------------------------
-//Typical Rotation and Flip
-//==================================================================
-} else {
-
-
-rotation = 360*random();
+rotation = TargetChoiceMinRotation + (random()*( TargetChoiceMaxRotation -  TargetChoiceMinRotation));
 
 
 flip=parseInt(random());
@@ -800,11 +890,6 @@ if(flip==1){
 flip="horizontal";
 run("Flip Horizontally");
 }
-
-}
-
-
-
 
 targetAngle=Array.concat(targetAngle,rotation);
 
@@ -817,15 +902,16 @@ dirArray=newArray(-1,1);
 dirX=dirArray[	parseInt(	random()	) ];
 dirY=dirArray[		parseInt(	random()	) ];
 
-//----------------------------------------------------------------
-//Set X and Y Coordinates the apply
-//==================================================================
+
+// Record X and Y Coordinates
+//---------------------------------
 
 coordArrayCheck1 = i/numPerSlide;
 coordArrayCheck2 = floor(i/numPerSlide);
 
 if(coordArrayCheck1==coordArrayCheck2){
 
+priorAngle = newArray();
 priorX = newArray();
 priorY = newArray();
 
@@ -844,6 +930,10 @@ roiManager("delete");
 nameNumber = nameNumber + 1;
 
 roiManager("Show None");
+
+//Use Mask to Copy Target
+//---------------------------------
+
 selectImage("Target");
 		run("Select All");
 		run("Duplicate...", "title=mask");
@@ -866,63 +956,126 @@ selectImage("Target");
 
 
 
+//Generate X and Y Coordinate
+//-----------------------------
+
 	loopRandomGate = 0;
 
 	while(loopRandomGate == 0){
 
 	loopRandomGate = 1;
+	
+	targetD = widthReScale;
+	
+	
+// i) Creates a coordinate that doesn't overlap with the centre or fall outside the screen.
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	Xcoord=(bgWidth/2)-(widthReScale/2); 
 	Ycoord=(bgHeight/2)-(widthReScale/2);
-
-	Xmod= ( ( (bgWidth/2)-(widthReScale*2) ) * random() );
-	Ymod= ( ( (bgHeight/2)-(widthReScale*2) ) * random() );
+	
+	
+	xDimension = bgWidth;
+	yDimension = bgHeight;
+	
+	setColor("black");
+	fillOval(Xcoord, Ycoord, targetD, targetD);
 
 	
-		Xcoord=Xcoord+(Xmod*dirX)+((widthReScale/2)*dirX);
-		Ycoord=Ycoord+(Ymod*dirY)+((widthReScale/2)*dirY);
+	
+	knownDimensionArray = newArray((xDimension/2),(yDimension/2));
+	randChoice = parseInt(random());
 
-		
-		for(l =0; l<2; l++){
+
+	if(randChoice == 0){
+		dimensionKnown = "x";
+		} else {
+		dimensionKnown = "y";
+		}
+
+	dimensionKnownValue = (targetD*1.25) + (random() * (knownDimensionArray[randChoice] - (targetD*2) ));
+	
+	randomAngle = random()*45*(PI/180);
+
+	adjacent = dimensionKnownValue;
+	opposite = tan(randomAngle) *adjacent ;
+
+	if(randChoice == 0){
+	xDist = adjacent ;
+	yDist = opposite;
+
+if(yDist > ((yDimension/2) - targetD )  ){
+yDist = (yDimension/2) - targetD   ;
+}
+
+} else {
+xDist = opposite;
+yDist = adjacent ;
+
+if(xDist > ((xDimension/2) - targetD )  ){
+xDist = (xDimension/2)  -targetD  ;
+}
+
+}
+
+randMod = newArray(-1, 1);
+randX = randMod[parseInt(random())];
+randY =randMod[parseInt(random())];
+
+
+Xcoord = Xcoord + (xDist * randX) ;
+Ycoord = Ycoord + (yDist * randY) ;
+
+
+
+
+// ii) Check 3 times that it doesn't overlap with existing targets
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+		for(l =0; l<3; l++){
 		for(Z = 0; Z<priorX.length; Z++){
+
 		
 		DisX = Math.sqrt( Math.sqr( Xcoord - priorX[Z]));
 		DisY = Math.sqrt( Math.sqr( Ycoord - priorY[Z]));
+		DisPythag = Math.sqrt( Math.sqr(DisX) + Math.sqr(DisY) );
 		
 		DisX2 =  Xcoord - priorX[Z];
 		DisY2 =  Ycoord - priorY[Z];
 		
-		
+		if(DisPythag<(targetD*1.25) ){
 
-		if(DisX<(widthReScale*1.2)){
-		
+		if(DisX<(targetD*1.25)){
+
 		if(DisX2<0){
-		Xcoord = Xcoord  - ((widthReScale) + (random()*widthReScale));
+		Xcoord = Xcoord - (targetD/2);
 		}
 		
 		if(DisX2>0){
-		Xcoord = Xcoord  + ((widthReScale) + (random()*widthReScale));
+		Xcoord = Xcoord  + (targetD/2);
 		}
+
 		
 		}
 
-		if(DisY<(widthReScale*1.2)){
+		if(DisY<(targetD*1.25)){
+
 		
 		if(DisY2<0){
-		Ycoord = Ycoord  - ((widthReScale) + (random()*widthReScale));
+		Ycoord = Ycoord  - (targetD/2);
 		}
+		
 		
 		if(DisY2>0){
-		Ycoord = Ycoord + ((widthReScale) + (random()*widthReScale));
+		Ycoord = Ycoord + (targetD/2);
 		}
-		
 		}
-		
+		}
 		
 
 		
-	}
-	}
+		}
+		}
 	
 		if(Xcoord < 0 || (Xcoord+widthReScale) > bgWidth || (Ycoord+widthReScale) > bgHeight || Ycoord < 0){
 		
@@ -930,19 +1083,18 @@ selectImage("Target");
 
 		}
 	}
-	
-priorX =Array.concat(priorX, Xcoord);
-priorY =Array.concat(priorY, Ycoord);
+
+priorAngle = Array.concat(priorAngle, randomAngle);
+priorX = Array.concat(priorX, Xcoord);
+priorY = Array.concat(priorY, Ycoord);
 
 
 
 if( (2+(floor(i/numPerSlide))) <= ( ( parseFloat(PopSize) ) / numPerSlide) +1 ){
 
 
-
-// ADD the Target to the Slice
-//run("Add Image...", "image=Target x=Xcoord y=Ycoord opacity=100 zero");
-
+// Copy Target to the Image
+//---------------------------------
 
 selectImage("Target");
 		
@@ -991,8 +1143,8 @@ targetXcoords=Array.concat(targetXcoords,Xcoord);
 targetYcoords=Array.concat(targetYcoords,Ycoord);
 
 
-//ADD ROIS
-//---------------------------------------------
+// Add ROIS
+//---------------------------------
 
 roiManager("Select", roiManager("Count")-1);
 roiManager("rename", "prey_"+nameNumber);
@@ -1026,7 +1178,8 @@ roiManager("rename", "local_"+nameNumber);
 roiManager("Select", newArray(roiManager("Count")-2,roiManager("Count")-3, roiManager("Count")-4) );
 roiManager("delete");
 
-//---------------------------------------------
+// Save Slide
+//---------------------------------
 
 setSlice(2+(floor(i/numPerSlide)));
 run("Select All");
@@ -1041,9 +1194,6 @@ selectImage("Save");
 
 run("From ROI Manager");
 saveAs("Tiff", PatternCombinedPath + floor(i/numPerSlide) +".tif"); 
-
-
-//-----------------------------
 
 close(floor(i/numPerSlide) +".tif");
 
@@ -1060,10 +1210,9 @@ close("target");
 
 
 
-TestTime= getTime()- startTimeTest;
-
-//print(TestTime/1000);
-
+//================================================
+//Remove ROIs
+//================================================
 
 while(roiManager("count")>0){
 roiManager("select",0);
@@ -1072,9 +1221,10 @@ roiManager("delete");
 
 
 
-//--------------------------------------------
-//Save Coordinates.
-//==============================
+
+//================================================
+//Save Coordinates, Flip and Rotation
+//================================================
 
 
 IDsArray = newArray("ID");
@@ -1110,41 +1260,6 @@ print(dataFile, surivalString);
 }
 File.close(dataFile);
 
-//Array.show(targetXcoords);
-
-///TestPoint("");
-//--------------------------------------------
-//Scale hit markers.
-//==============================
-
-if(!isOpen("greenCircle.png")){
-
-open(getDirectory("plugins") + "1 CamoEvo/Interface/greenCircle.png");
-
-}
-
-if(!isOpen("redCircle.png")){
-
-open(getDirectory("plugins") + "1 CamoEvo/Interface/redCircle.png");
-
-}
-
-selectImage("greenCircle.png");
-
-ts = "x=- y=- height=" + widthReScale+80 + " width= "+ widthReScale+80  + "  interpolation=None";
-ts2 = "width="+ widthReScale+80  + " height=" + widthReScale+80  + " position=Center";
-run("Select None");
-run("Scale...", ts);
-run("Canvas Size...", ts2);
-
-selectImage("redCircle.png");
-
-ts = "x=- y=- height=" + widthReScale+80  + " width= "+ widthReScale+80  + "  interpolation=None";
-ts2 = "width="+ widthReScale+80  + " height=" + widthReScale+80  + " position=Center";
-run("Select None");
-run("Scale...", ts);
-run("Canvas Size...", ts2);
-
 
 
 
@@ -1152,41 +1267,66 @@ run("Canvas Size...", ts2);
 selectImage("GameSlides");
 
 //----------------------------------------------------------------------------------------------------------------
-// 5) Show Slides
+// 3) Run the Game
 //----------------------------------------------------------------------------------------------------------------
 
+
+//================================================
+//Hide Screens
+//================================================
+
+
+
+if(isOpen("Loading")){
 selectImage("Loading");
 setBatchMode("Hide");
+}
 
 
+if(isOpen("Evolving")){
 selectImage("Evolving");
 setBatchMode("Hide");
+}
 
 
+//================================================
+//Ask to Play Screen
+//================================================
 
 
-selectImage("01_Play.jpg");
+// Open Screen
+//---------------------------------
+
+if(!isOpen("Game")){
+if( startsWith(getInfo("os.name"), "Windows") ==1){
+playDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Game/01.jpg";
+} else {
+playDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Game/";
+}
+run("Image Sequence...", "open=[&playDirectory] sort");
+}
+selectImage("Game");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 setBatchMode("Show");
 run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
+
+// Add Group Size and Time Out Text
+//---------------------------------
 
 //ADD text string
 setFont("Caldibri ", 32, "bold");
- setColor( "#16150D");
- stringB= "                                                          ";
-drawString(stringB, 740, 580, "#16150D");
 
 
- setColor(255,255, 255);
+setColor("#16150D");
+fillRect(174 + (xButtonShift/2), 534, 1142, 128);
+
+setColor("white");
+
 setJustification("center");
 stringT= "You have "+(TimeOutTime/1000)+" Seconds to click on each target.";
-drawString(stringT, 740, 580, "#16150D");
-
-setFont("Caldibri ", 32, "bold");
- setColor( "#16150D");
- stringB= "                                                          ";
-drawString(stringB, 740, 640, "#16150D");
-
+drawString(stringT, 740 + (xButtonShift/2), 580);
 
  setColor(255,255, 255);
 setJustification("center");
@@ -1197,36 +1337,33 @@ TargetString = " targets";
 }
 
 stringT= "Each slide will have " + numPerSlide + TargetString +" you need to find.";
-drawString(stringT, 740, 640, "#16150D");
-
-
-
-
+drawString(stringT, 740 + (xButtonShift/2), 640);
 
 
 //BUTTON 1, Play
 //-----------------------------------------
 
-	b1_x1= 327;
+	b1_x1= 327  + (xButtonShift/2);
 	b1_y1= 772;
 
-	b1_x2= 327 +  355;
-	b1_y2= 772 + 210;
+	b1_x2= b1_x1 +  355;
+	b1_y2= b1_y1 + 210;
 
 
 //BUTTON 2, Skip
 //-----------------------------------------
 
-	b2_x1= 797;
+	b2_x1= 797 + (xButtonShift/2);
 	b2_y1= 772;
 
-	b2_x2= 797 +  355;
-	b2_y2= 772 + 210;
+	b2_x2= 	b2_x1 +  355;
+	b2_y2= b2_y1 + 210;
 
 
 //----------------------------------------
 
-selectImage("01_Play.jpg");
+selectImage("Game");
+
 
 
 whileGate=0;
@@ -1237,57 +1374,89 @@ run("Select None");
 
 while(whileGate==0){
 wait(100);
+setSlice(1);
+selectImage("Game");
 
-selectImage("01_Play.jpg");
+	
+	getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
+	
+	
+		{
 
-	setTool("point");
 
-		if(selectionType!=-1){
-
-		Roi.getCoordinates(xpoints, ypoints);
-		clickX=xpoints[0];
-		clickY=ypoints[0];
+		clickX=mouseX; 
+		clickY=mouseY;
 
 		//Button 1
 		//-----------------
 		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
-
+		
+			Tool=1;
+			Tool=1;   if(flag&16!=0){wait (200);
 		whileGate=1;
 		exitCheck=0;
 
 		}
-
+		}
+		
 		//Button 2
 		//-----------------
 		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
-
+			
+			
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
 		whileGate=1;
 		exitCheck=1;
 
 		}
-
-
 		}
 
 run("Select None");
+if(Tool != ToolOld){
+			if(Tool == 0)
+				setTool("arrow");
+			if(Tool  == 1)
+				setTool("hand");
+		ToolOld= Tool;
+}
 
 
 }
+}
+
+
+
+// Back to Main Menu
+//---------------------------------
 
 if(exitCheck==1){
+if(isOpen("Loading")){
+selectImage("Loading");
+
+setBatchMode("Show");
+run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
 setBatchMode(false);
-if(isOpen("blank")){
-selectImage("blank");
 close("\\Others");
 } else{
 close("*");
 }
+
 doCommand("CamoEvo Game");
 exit
 }
 
 
 
+//================================================
+//Setup Game
+//================================================
+
+// Time Recordings
+//---------------------------------
 TimesArray=newArray(randomBackgrounds.length+1);
 TimesArray[0] = "fitness";
 
@@ -1304,24 +1473,47 @@ roiManager("delete");
 }
 run("Select None");
 
+
+
+// Show Slides
+//---------------------------------
 selectImage("GameSlides");
 setSlice(1);
 run("Select None");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 setBatchMode("Show");
-setLocation(xScale, yScale, wScale, hScale);
 run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
-selectImage("01_Play.jpg");
+selectImage("Game");
+
 setBatchMode("Hide");
 
 
 
+// Hit Box Size
+//--------------------------------
+
+selectImage("GameSlides");
+ovalW=30;
+ovalH=30;
+ovalX= (getWidth/2)-(ovalW/2) ;
+ovalY= (getHeight/2)-(ovalH/2);
+ovalCX = (getWidth/2);
+ovalCY = (getHeight/2);
+clickLeeway = 1/3;
 
 
-// Game Play
-//==================================================
+
+
+//================================================
+//GamePlay
+//================================================
 
 for(j=0;j<randomBackgrounds.length / numPerSlide;j++){
+setTool("Arrow");
+
+setLineWidth(1);
 
 if(getImageID() != "GameSlides"){
 if(isOpen("GameSlides")){
@@ -1333,10 +1525,14 @@ exit
 
 }
 
+
+
+// Screen Centre Slide
+//--------------------------------
+
 if(getSliceNumber() != (1+(j*2))){
 setSlice(1);
 }
-
 
 setColor("black");
 fillOval(ovalX, ovalY, ovalW, ovalH);
@@ -1353,7 +1549,7 @@ setColor("black");
 fillOval(ovalX, ovalY, ovalW, ovalH);
 setColor("white");
 setLineWidth(5);
-drawOval(ovalX, ovalY, ovalW, ovalH);
+drawOval(ovalX , ovalY, ovalW, ovalH);
 
 for(v=0;v<vLeng;v++){
 getCursorLoc(x1, y1, z, modifiers);
@@ -1387,10 +1583,6 @@ centreGate=0;
 }
 }
 
-
-
-
-
 getCursorLoc(x, y, z, modifiers);
 
 wait(500);
@@ -1401,7 +1593,8 @@ setSlice(2+(j));
 
 run("Select None");
 
-
+// Initiate Game Slide
+//--------------------------------
 
 		timeOutGate1= 1;
 		timeOutGate2= 0;
@@ -1441,9 +1634,12 @@ run("Select None");
 		startTime = getTime();
 		i= getTime()- startTime;
 		TimeDeduct=0;
+		
+		
 
-				//Initiate Slide
-				//--------------------
+			// i) Show Slide
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			
 				while(i<TimeOutTime){
 				
 				i= getTime()- startTime;
@@ -1472,28 +1668,33 @@ run("Select None");
 				}
 				
 				
-
-
-					if(selectionType!=-1){
-					Roi.getCoordinates(xpoints, ypoints);
+				
+				
+				// ii) Get Click
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+					getCursorLoc(mouseX, mouseY, mouseZ, flag); 
+					
+					if(flag&16!=0){
+					xClick = mouseX- (xButtonShift/2);
+					yClick = mouseY;
 					
 					
 
-					//Target 1
+					//Target 1 Click?
 					
 					if(timeOutGate1 == 1){
 					
 					targetNum = (j*numPerSlide);
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 					
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1503,9 +1704,11 @@ run("Select None");
 						
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 
 						
@@ -1514,19 +1717,20 @@ run("Select None");
 					
 					}
 					
+					//Target 2 Click?
 					
 					if(timeOutGate2 == 1){
 					
 					targetNum = (j*numPerSlide)+1;
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1534,9 +1738,11 @@ run("Select None");
 						timeOutGate2=0;
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 
 						}
@@ -1544,19 +1750,20 @@ run("Select None");
 					}
 					
 					
+					//Target 3 Click?
 					
 					if(timeOutGate3 == 1){
 					
 					targetNum = (j*numPerSlide)+2;
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1564,10 +1771,11 @@ run("Select None");
 						timeOutGate3=0;
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
-					
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 
 						}
@@ -1575,18 +1783,20 @@ run("Select None");
 					}
 					
 					
+					//Target 4 Click?
+					
 					if(timeOutGate4 == 1){
 					
 					targetNum = (j*numPerSlide)+3;
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1594,9 +1804,11 @@ run("Select None");
 						timeOutGate4=0;
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 						
 
@@ -1605,19 +1817,21 @@ run("Select None");
 					
 					}
 					
+
+					//Target 5 Click?
 					
 					if(timeOutGate5 == 1){
 					
 					targetNum = (j*numPerSlide)+4;
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1625,9 +1839,11 @@ run("Select None");
 						timeOutGate5=0;
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 			
 
 
@@ -1635,19 +1851,20 @@ run("Select None");
 					
 					}
 					
+					//Target 6 Click?					
 					
 					if(timeOutGate6 == 1){
 					
 					targetNum = (j*numPerSlide)+5;
 					
-					DistX = Math.sqrt( Math.sqr(xpoints[0]-(targetXcoords[targetNum] + (widthReScale/2)) ));
+					DistX = Math.sqrt( Math.sqr(xClick-(targetXcoords[targetNum] + (widthReScale/2)) ));
 
-					DistY = Math.sqrt( Math.sqr(ypoints[0]-(targetYcoords[targetNum] + (widthReScale/2)) ));
+					DistY = Math.sqrt( Math.sqr(yClick-(targetYcoords[targetNum] + (widthReScale/2)) ));
 
 					DistH=Math.sqrt( Math.sqr(DistX) + Math.sqr(DistY) );
 
 
-						if(DistH <((widthReScale/2)+80)){
+						if(DistH <((widthReScale*(0.5+clickLeeway)))){
 
 						capTimesArray[targetNum+1]=i - TimeDeduct;
 						TimeDeduct = TimeDeduct + 0.5;
@@ -1655,9 +1872,11 @@ run("Select None");
 						timeOutGate6=0;
 						
 
-						circleX = targetXcoords[targetNum]-40;
-						circleY = targetYcoords[targetNum]-40;
-						run("Add Image...", "image=greenCircle.png x=circleX  y=circleY opacity=100 zero");
+						circleX = targetXcoords[targetNum] + (xButtonShift/2);
+						circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("green");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 						
 						
 
@@ -1682,9 +1901,15 @@ run("Select None");
 
 			
 
-			wait(6);
+			wait(2);
 			
 			}
+			
+			
+		// iii) Check for failed to find targets
+		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~		
+			
+		//Target 1 Fail!		
 
 		if(timeOutGate1==1){
 		
@@ -1694,12 +1919,17 @@ run("Select None");
 		respTimesArray[targetNum+1]=TimeOutTime;
 		
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
 
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
+		
+		
+		//Target 2 Fail!	
 		
 		if(timeOutGate2==1){
 		
@@ -1708,13 +1938,17 @@ run("Select None");
 		capTimesArray[targetNum+1]=TimeOutTime;
 		respTimesArray[targetNum+1]=TimeOutTime;
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
 
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
-		
+
+		//Target 3 Fail!	
+
 		if(timeOutGate3==1){
 		
 		targetNum = (j*numPerSlide)+2;
@@ -1722,12 +1956,16 @@ run("Select None");
 		capTimesArray[targetNum+1]=TimeOutTime;
 		respTimesArray[targetNum+1]=TimeOutTime;
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
 
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
+		
+		//Target 4 Fail!			
 		
 		if(timeOutGate4==1){
 		
@@ -1736,12 +1974,16 @@ run("Select None");
 		capTimesArray[targetNum+1]=TimeOutTime;
 		respTimesArray[targetNum+1]=TimeOutTime;
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
 
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
+		
+		//Target 5 Fail!			
 		
 		if(timeOutGate5==1){
 		
@@ -1750,12 +1992,17 @@ run("Select None");
 		capTimesArray[targetNum+1]=TimeOutTime;
 		respTimesArray[targetNum+1]=TimeOutTime;
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
 
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
+		
+		
+		//Target 6 Fail!			
 		
 		if(timeOutGate6==1){
 		
@@ -1764,18 +2011,21 @@ run("Select None");
 		capTimesArray[targetNum+1]=TimeOutTime;
 		respTimesArray[targetNum+1]=TimeOutTime;
 
-		circleX = targetXcoords[targetNum]-40;
-		circleY = targetYcoords[targetNum]-40;
-
-		run("Add Image...", "image=redCircle.png x=circleX  y=circleY opacity=100 zero");
+		circleX = targetXcoords[targetNum] + (xButtonShift/2);
+		circleY = targetYcoords[targetNum];
+						setLineWidth(6);
+						setColor("red");
+						drawOval(circleX-(widthReScale*clickLeeway/2), circleY-(widthReScale*clickLeeway/2), (widthReScale)+(widthReScale*clickLeeway),  (widthReScale)+(widthReScale*clickLeeway));
 
 		}
 		
 		
 		
-	
-
+		if(timeOutGate1==1 || timeOutGate2==1 || timeOutGate3==1 || timeOutGate4==1 || timeOutGate5==1 || timeOutGate6==1 ){
 		wait(1500);
+		} else {
+		wait(500);
+		}
 
 		}
 
@@ -1794,33 +2044,40 @@ TimesArray[i] = capTimesArray[i];
 
 
 
+
+/*
+..........................................................................................................................................
+
+														Evolve Next Generation
+
+..........................................................................................................................................
+
+*/
+
+
+
 //----------------------------------------------------------------------------------------------------------------
-// 6) Start Evolution
+// 0) Run Finale Features
 //----------------------------------------------------------------------------------------------------------------
 
-
-
-//--------------------------------------------
-//Animation
-//==============================
-//--------------------------------------------
+//=========================
 //Run Evolving Animation
 //========================
 
+
+if(isOpen("Evolving")){
 selectImage("Evolving");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 for(i=0;i<4;i++){
 setSlice(i+1);
 
  setFont("Caldibri ", 52, "bold");
  setColor( "#16150D");
 
- stringB= "                                         ";
-
-drawString(stringB, 740, 552, "#16150D");
+fillRect(154 + (xButtonShift/2), 426, 1176, 204);
 
 
-
- setColor(255,255, 255);
+ setColor("white");
 
 
 
@@ -1828,29 +2085,26 @@ setJustification("center");
 
  stringT= " Evolving Generation "+(GenNumber+1)+" ... ";
 
- drawString(stringT, 740, 552, "#16150D");
+ drawString(stringT, 740 + (xButtonShift/2), 552);
 
 }
 
 selectImage("Evolving");
 setBatchMode("Show");
-setLocation(xScale, yScale, wScale, hScale);
 run("Maximize");
- run("Animation Options...", "speed="+6);
-doCommand("Start Animation");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
+run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+}
 
 selectImage("GameSlides");
-setBatchMode("Hide");
 close("GameSlides");
 
 
-
-//--------------------------------------------
+//==============================-
 //Save Results
 //==============================
-
-
 
 
 if(File.exists(SurvGenNum)==1){
@@ -1873,20 +2127,25 @@ File.append(surivalString, SurvGenNum);
 }
 
 
-//--------------------------------------------
+//----------------------------------------------------------------------------------------------------------------
+// 1) Run Genetic Algorithm
+//----------------------------------------------------------------------------------------------------------------
+
+//==============================
 //Image GA
 //==============================
 
 
 DirectoryString= "select=[" + CheckDirectory+ "]";
 
-run("ImageGA LITE noPrint", DirectoryString);
+setBatchMode(true);
+run("ImageGA Algorithm", DirectoryString);
 
 
 
-//--------------------------------------------
-//While Check
-//==============================
+//========================================
+//Check whether a new generation was made?
+//=======================================
 
 
 
@@ -1910,21 +2169,43 @@ checkB1 = checkB1.length;
 
 
 
+/*
+..........................................................................................................................................
+
+															End Screen
+
+..........................................................................................................................................
+
+*/
+
+
+
 //----------------------------------------------------------------------------------------------------------------
-// 7) Display Game Complete Screen
+// 0) Show End Menu
 //----------------------------------------------------------------------------------------------------------------
+
+//=======================================
+//Hide Loading
+//=======================================
+if(!isOpen("Loading")){
+run("Image Sequence...", "open=[&LoadingDirectory] sort");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
+}
 selectImage("Loading");
 setBatchMode("hide");
 
 
+
 checkZ=0;
 
-Slide=1;
+
+
+//=======================================
+//Open End Screen
+//=======================================
+
 
 if(!isOpen("EndScreen")){
-
-
-
 if( startsWith(getInfo("os.name"), "Windows") ==1){
 FinishedDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/End/01.jpg";
 } else {
@@ -1933,27 +2214,33 @@ FinishedDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/End/";
 
 
 run("Image Sequence...", "open=[&FinishedDirectory] sort");
-
-
 rename("EndScreen");
 
 }
 
 selectImage("EndScreen");
 
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
 setBatchMode("Show");
 run("Maximize");
-setLocation(xScale, yScale, wScale, hScale);
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+
+Slide=1;
 
 
-
+//=======================================
+//Close Evolving
+//=======================================
+if(isOpen("evolving")){
+close("evolving");
+}
 
 
 //BUTTON 1, Run Camo Anlysis
 //-----------------------------------------
 
 
-	b1_x1= 386;
+	b1_x1= 386 + (xButtonShift/2);
 	b1_y1= 478;
 
 	b1_x2= b1_x1 + 694;
@@ -1964,7 +2251,7 @@ setLocation(xScale, yScale, wScale, hScale);
 //-----------------------------------------
 
 
-	b2_x1= 386;
+	b2_x1= 386 + (xButtonShift/2);
 	b2_y1= 688;
 
 	b2_x2= b2_x1 + 694;
@@ -1975,7 +2262,7 @@ setLocation(xScale, yScale, wScale, hScale);
 //-----------------------------------------
 
 
-	b3_x1= 386;
+	b3_x1= 386 + (xButtonShift/2);
 	b3_y1= 896;
 
 	b3_x2= b3_x1 + 694;
@@ -2001,43 +2288,56 @@ wait(100);
 
 	selectImage("EndScreen");
 
-	setTool("point");
+	
+	getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
+	
+	
+		{
 
-		if(selectionType!=-1){
 
-		
-		Roi.getCoordinates(xpoints, ypoints);
-		clickX=xpoints[0];
-		clickY=ypoints[0];
+		clickX=mouseX;  
+		clickY=mouseY;
 
 		//Button 1
 		//-----------------
 		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
-
+		
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
 		keepGoing=0;
 		whileGate2=1;
 
 		}
-		
+		}
 		
 		//Button 2
 		//-----------------
 		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
 
+
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
 		keepGoing=1;
 		whileGate2=1;
 
 		}
-		
+		}
 		
 		//Button 3
 		//-----------------
 		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
 
-
-	setBatchMode(false);
-if(isOpen("blank")){
-selectImage("blank");
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
+		
+if(isOpen("Loading")){
+selectImage("Loading");
+setBatchMode("Show");
+run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
+setBatchMode(false);
 close("\\Others");
 } else{
 close("*");
@@ -2046,9 +2346,16 @@ doCommand("CamoEvo Game");
 exit
 
 		}
-		
+		}
 
 		run("Select None");
+		if(Tool != ToolOld){
+			if(Tool == 0)
+				setTool("arrow");
+			if(Tool  == 1)
+				setTool("hand");
+		ToolOld= Tool;
+}
 
 		}
 
@@ -2062,24 +2369,28 @@ exit
 
 
 //----------------------------------------------------------------------------------------------------------------
-// 7.5)Loop Again
+// 1) Run for 5 Additional Generations
 //----------------------------------------------------------------------------------------------------------------
+
+//=================================================
 // Loop if you Choose to Keep Going
-//------------------------------------
+//=================================================
 if(keepGoing==1){
 setBatchMode("hide");
 
 
 selectImage("Loading");
-setBatchMode("show");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
+setBatchMode("Show");
 run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
  run("Animation Options...", "speed="+6);
 doCommand("Start Animation");
 
-
-// Changes population setting by adding 5 generations.
-//-----------------------------------------------------
-PopulationSet = PopLocation+"Population Settings.txt";
+//=================================================
+// Add 5 generations to Population Settings
+//=================================================
+PopulationSet = PopLocation+"PopulationSettings.txt";
 PopulationSettings = File.openAsString(PopulationSet );
 PopulationSettings = split(PopulationSettings, "\n");
 
@@ -2102,12 +2413,13 @@ File.append(PopulationSettings,PopulationSet);
 
 checkZ=1;
 
-// Changes algorithim setting by adding 5 generations.
-//-----------------------------------------------------
+//=================================================
+// Add 5 generations to Algorithm Settings
+//=================================================
 AlgorithimSet = PopLocation+"AlgorithmSettings.txt";
 AlgorithimSettings = File.openAsString(AlgorithimSet);
 AlgorithimSettings = split(AlgorithimSettings, "\n");
-AlgorithimSettings[0]=parseFloat(AlgorithimSettings[0])+5;
+AlgorithimSettings[7]=parseFloat(AlgorithimSettings[7])+5;
 AlgorithimSettings = String.join(AlgorithimSettings, "\n");
 
 File.delete(AlgorithimSet);
@@ -2131,12 +2443,14 @@ run("Image Sequence...", "open=[&EvolvingDirectory] sort");
 
 
 //----------------------------------------------------------------------------------------------------------------
-// 8) Load up Results and Present them.
+// 2) Run Analyses
 //----------------------------------------------------------------------------------------------------------------
 } else{
 
 
-// Pre load slides
+//=================================================
+//Close Unnecesary Slides
+//=================================================
 
 if(!isOpen("Evolving")){
 close("Evolving");
@@ -2145,6 +2459,11 @@ if(!isOpen("Evolving")){
 close("Evolving");
 }
 
+
+
+//=================================================
+//Run Analysing Animation
+//=================================================
 
 
 if( startsWith(getInfo("os.name"), "Windows") ==1){
@@ -2154,11 +2473,12 @@ AnalysingDirectory = getDirectory("plugins") + "1 CamoEvo/Interface/Analysing/";
 }
 
 
-
 run("Image Sequence...", "open=[&AnalysingDirectory] sort");
 rename("Analysing");
-setBatchMode("show");
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
+setBatchMode("Show");
 run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
  run("Animation Options...", "speed="+6);
 doCommand("Start Animation");
 
@@ -2171,16 +2491,12 @@ setBatchMode("hide");
 
 
 
-/*
-open(FinishedDirectory + "02.jpg");
-rename("ResultsScreen");
-*/
-//--------------------------------------------
-// Get Plots
-//============================================
+//=================================================
+//Get Data
+//=================================================
 
 // Get Fitness
-//--------------------------------------------
+//------------------
 
 		survivalDIR = CheckDirectory;
 
@@ -2260,6 +2576,8 @@ rename("ResultsScreen");
 		}
 		}
 		
+		//Array.show(IDs);
+		
 		GenomeNum = survivalDIR + "generation_" + i  + txt;
 		
 		
@@ -2271,22 +2589,28 @@ rename("ResultsScreen");
 		GenomeNames = String.join(GenomeNames, "\t");
 		referenceRows = Array.deleteIndex(referenceRows, 0);
 		
-
+		//Array.show(referenceRows);
+		
 		L = referenceRows.length;
 		
 		for(f=0; f<L; f++){
 		IDname = IDs[f];
 		
 		for(v=0; v<L; v++){
+		if(startsWith(referenceRows[v],IDname)){
 		splitStr = split(referenceRows[v],"\t");
 		genomeStr = Array.deleteIndex(splitStr, 0);
 		genomeStr =String.join(genomeStr, "\t");
 		genomeArray=Array.concat(genomeArray, genomeStr);
 		}
 		}
-		//Array.show(genomeArray);
 		
 		
+		}
+		
+		
+		
+	
 		
 
 		shortGenArray = Array.concat(shortGenArray, i);
@@ -2310,7 +2634,8 @@ rename("ResultsScreen");
 		}
 
 	
-	
+	//Array.show("check2",genomeArray);
+		
 
 		 
 				//  Line Plot
@@ -2324,10 +2649,11 @@ rename("ResultsScreen");
 				if(yMax>=TimeOutTime){
 				yMax=TimeOutTime;
 				}
-				Plot.create("Line Plot", "Generation", "Capture Time (milliseconds)", shortGenArray, FitnessMeanArray);
+				Plot.create("Line Plot", "Generation", "Survival Time (milliseconds)", shortGenArray, FitnessMeanArray);
 				Plot.setLineWidth(3);
-				Plot.setFontSize(21);
-				Plot.setAxisLabelSize(28, "bold");
+				Plot.setFontSize(30);
+				Plot.setAxisLabelSize(36, "bold");
+				Plot.setOptions("addhspace=15 addvspace=15");
 				
 				Plot.setLimits(0,  xMax, 0, yMax);
 				Plot.setLineWidth(2);
@@ -2358,6 +2684,7 @@ run("Canvas Size...", ts2);
 //Array.show("check_old",GenArray, IDarray, FitnessArray);
 
 
+
 // Get Luminance, Colour, Pattern, Gabrat
 //--------------------------------------------
 
@@ -2380,6 +2707,19 @@ run("Canvas Size...", ts2);
 		PatternArray2 = newArray();
 		ColourArray2 = newArray();
 		GabRatArray2 = newArray();
+		
+			
+		bgLumArray2 = newArray();
+		bgCtrstArray2 = newArray();
+		bgAvalArray2 = newArray();
+		bgBvalArray2 = newArray();
+		
+		targetLumArray2 = newArray();
+		targetCtrstArray2 = newArray();
+		targetAvalArray2 = newArray();
+		targetBvalArray2 = newArray();
+		
+		
 		
 		Lum_MeanArray = newArray();
 		Lum_ErrorArray = newArray();
@@ -2429,8 +2769,12 @@ run("Canvas Size...", ts2);
 			}
 			
 			if(File.exists(survivalDIR+"Data_Output_" + FolderName + ".txt")){
+			
 			referenceString=File.openAsString(survivalDIR+"Data_Output_" + FolderName + ".txt");	// open txt data file
+			
 			referenceRows=split(referenceString, "\n");
+			
+			if(referenceRows.length>0){
 			referenceRows=Array.deleteIndex(referenceRows, 0);
 			
 			if(referenceRows.length>0){
@@ -2441,7 +2785,7 @@ run("Canvas Size...", ts2);
 			if(referenceRows.length == (CombinedArray.length * PopSize)){
 			NewAnalysisGate = 0;
 			}
-		
+			}
 			}
 
 						
@@ -2454,6 +2798,17 @@ run("Canvas Size...", ts2);
 			patternDifference = newArray();
 			colourDifference = newArray();
 			GabRatArray = newArray();
+			
+			bgLum = newArray();
+			bgCtrst= newArray();
+			bgAv = newArray();
+			bgBv = newArray();
+			
+			targetLum = newArray();
+			targetCtrst= newArray();
+			targetAv = newArray();
+			targetBv = newArray();
+			
 			
 			fileList = getFileList(CombinedNum);
 			photoList = newArray();
@@ -2524,7 +2879,11 @@ run("Canvas Size...", ts2);
 
 									luminanceDifference = Array.concat(luminanceDifference, Ldiff );
 
-
+									
+									bgLum = Array.concat(bgLum, localL );
+									targetLum = Array.concat(targetLum, targetL );
+												
+												
 									//Pattern difference
 									//-----------------------
 									targetColumn = "StdDev(prey_"+ l +")";
@@ -2536,6 +2895,9 @@ run("Canvas Size...", ts2);
 									Pdiff = Math.sqrt( Math.sqr(localP - targetP));
 
 									patternDifference = Array.concat(patternDifference, Pdiff );
+									
+									bgCtrst = Array.concat(bgCtrst, localP);
+									targetCtrst = Array.concat(targetCtrst, targetP );
 
 									//Colour difference
 									//-----------------------
@@ -2548,6 +2910,10 @@ run("Canvas Size...", ts2);
 									localA = getResult(localColumn, 1);
 
 									Adiff = Math.sqr(localA - targetA);
+									
+									bgAv = Array.concat(bgAv , localA);
+									targetAv = Array.concat(targetAv, targetA);									
+									
 
 									// B
 									//-----
@@ -2563,9 +2929,12 @@ run("Canvas Size...", ts2);
 
 									colourDifference = Array.concat(colourDifference, Cdiff );
 
+									bgBv = Array.concat(bgBv , localB);
+									targetBv = Array.concat(targetBv, targetB);	
+
 								}
 
-
+								
 
 								//GABRAT
 								//---------------------------
@@ -2625,7 +2994,7 @@ run("Canvas Size...", ts2);
 
 
 								for(l=0; l<numPerSlide; l++) {
-								Row = l*2;
+								Row = l;
 
 								targetGAB = getResult("GabRat" , Row);
 
@@ -2651,12 +3020,23 @@ run("Canvas Size...", ts2);
 			luminanceDifference = Array.concat(luminanceDifference, parseFloat(temp[5]));
 			patternDifference = Array.concat(patternDifference, parseFloat(temp[6]));
 			colourDifference = Array.concat(colourDifference, parseFloat(temp[7]));
-			GabRatArray = Array.concat(GabRatArray, parseFloat(temp[8]));
-			imageNumArray = Array.concat(imageNumArray, temp[9]);
-			XcoordArray = Array.concat(XcoordArray, parseFloat(temp[10]));
-			YcoordArray = Array.concat(YcoordArray, parseFloat(temp[11]));
-			rotationArray = Array.concat(rotationArray, parseFloat(temp[12]));
-			flipArray = Array.concat(flipArray, temp[13]);
+			
+			bgLum = Array.concat(bgLum, parseFloat(temp[8]));
+			bgCtrst = Array.concat(bgCtrst, parseFloat(temp[9]));
+			bgAv = Array.concat(bgAv, parseFloat(temp[10]));
+			bgBv = Array.concat(bgBv , parseFloat(temp[11]));
+			
+			targetLum = Array.concat(targetLum, parseFloat(temp[12]));
+			targetCtrst = Array.concat(targetCtrst, parseFloat(temp[13]));
+			targetAv = Array.concat(targetAv, parseFloat(temp[14]));
+			targetBv = Array.concat(targetBv, parseFloat(temp[15]));
+			
+			GabRatArray = Array.concat(GabRatArray, parseFloat(temp[16]));
+			imageNumArray = Array.concat(imageNumArray, temp[17]);
+			XcoordArray = Array.concat(XcoordArray, parseFloat(temp[18]));
+			YcoordArray = Array.concat(YcoordArray, parseFloat(temp[19]));
+			rotationArray = Array.concat(rotationArray, parseFloat(temp[20]));
+			flipArray = Array.concat(flipArray, temp[21]);
  
 			}
 			}
@@ -2665,12 +3045,21 @@ run("Canvas Size...", ts2);
 		
 	
 			
-			LumArray2=Array.concat(LumArray2, luminanceDifference);
-			PatternArray2=Array.concat(PatternArray2, patternDifference);
-			ColourArray2=Array.concat(ColourArray2, colourDifference);
-			GabRatArray2 =Array.concat(GabRatArray2 , GabRatArray);
+			LumArray2 = Array.concat(LumArray2, luminanceDifference);
+			PatternArray2 = Array.concat(PatternArray2, patternDifference);
+			ColourArray2 = Array.concat(ColourArray2, colourDifference);
+			GabRatArray2 = Array.concat(GabRatArray2 , GabRatArray);
+
+				bgLumArray2 = Array.concat(bgLumArray2, bgLum);
+				bgCtrstArray2 = Array.concat(bgCtrstArray2 , bgCtrst);
+				bgAvalArray2 = Array.concat(bgAvalArray2, bgAv);
+				bgBvalArray2 = Array.concat(bgBvalArray2, bgBv);
 		
-			
+				targetLumArray2 = Array.concat(targetLumArray2, targetLum);
+				targetCtrstArray2 = Array.concat(targetCtrstArray2, targetCtrst);
+				targetAvalArray2 = Array.concat(targetAvalArray2, targetAv);
+				targetBvalArray2 = Array.concat(targetBvalArray2, targetBv);
+					
 		
 			
 			Array.getStatistics(luminanceDifference, min, max, mean, stdDev);
@@ -2694,14 +3083,6 @@ run("Canvas Size...", ts2);
 			
 
 			}
-			
-			
-
-
-TestTime= getTime()- startTimeTest;
-		//print(TestTime/1000);
-
-
 
 scaledLuminance = newArray();
 scaledPattern = newArray();
@@ -2731,12 +3112,14 @@ scaledGabRat = Array.concat(scaledGabRat, (GabRat_MeanArray[i]-mean)/stdDev);
 
 
 			
-// Get Plots
-//--------------------------
-//setBatchMode("exit and display");
+//=================================================
+//Create Plots
+//=================================================
+
 
 			//  Lum Plot
-				 
+			// -----------------------	
+			
 				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
 				xMax = max+0.2;
 				xMin = min;
@@ -2747,10 +3130,11 @@ scaledGabRat = Array.concat(scaledGabRat, (GabRat_MeanArray[i]-mean)/stdDev);
 				yMin=0;
 				}
 			
-				Plot.create("Line Plot", "Generation", "Luminance Distance", shortGenArray, Lum_MeanArray);
+				Plot.create("Line Plot", "Generation", "Luminance Difference", shortGenArray, Lum_MeanArray);
 				Plot.setLineWidth(3);
-				Plot.setFontSize(21);
-				Plot.setAxisLabelSize(28, "bold");
+				Plot.setFontSize(30);
+				Plot.setAxisLabelSize(36, "bold");
+				Plot.setOptions("addhspace=15 addvspace=15");
 				
 				Plot.setLimits(0,  xMax, yMin, yMax);
 				Plot.setLineWidth(2);
@@ -2778,10 +3162,8 @@ run("Canvas Size...", ts2);
 
 
 
-//---------------------------------
-
 			//  Pattern Plot
-				 
+			// -----------------------	 
 				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
 				xMax = max+0.2;
 				xMin = min;
@@ -2797,8 +3179,9 @@ run("Canvas Size...", ts2);
 			
 				Plot.create("Line Plot", "Generation", "Contrast Difference", shortGenArray, Pattern_MeanArray);
 				Plot.setLineWidth(3);
-				Plot.setFontSize(21);
-				Plot.setAxisLabelSize(28, "bold");
+				Plot.setFontSize(30);
+				Plot.setAxisLabelSize(36, "bold");
+				Plot.setOptions("addhspace=15 addvspace=15");
 				
 				Plot.setLimits(0,  xMax, yMin, yMax);
 				Plot.setLineWidth(2);
@@ -2824,10 +3207,10 @@ ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Cen
 run("Scale...", ts);
 run("Canvas Size...", ts2);
 
-//---------------------------------
+
 
 			//  Colour Plot
-				 
+			// -----------------------					 
 				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
 				xMax = max+0.2;
 				xMin = min;
@@ -2840,10 +3223,11 @@ run("Canvas Size...", ts2);
 				
 				
 			
-				Plot.create("Line Plot", "Generation", "Colour Distance", shortGenArray, Colour_MeanArray);
+				Plot.create("Line Plot", "Generation", "Colour Difference", shortGenArray, Colour_MeanArray);
 				Plot.setLineWidth(3);
-				Plot.setFontSize(21);
-				Plot.setAxisLabelSize(28, "bold");
+				Plot.setFontSize(30);
+				Plot.setAxisLabelSize(36, "bold");
+				Plot.setOptions("addhspace=15 addvspace=15");
 				
 				Plot.setLimits(0,  xMax, yMin, yMax);
 				Plot.setLineWidth(2);
@@ -2869,9 +3253,9 @@ ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Cen
 run("Scale...", ts);
 run("Canvas Size...", ts2);
 
-//---------------------------------
 
 			//  GabRat Plot
+			// -----------------------				
 				 
 				Array.getStatistics( shortGenArray, min, max, mean, stdDev);
 				xMax = max+0.2;
@@ -2887,8 +3271,9 @@ run("Canvas Size...", ts2);
 			
 				Plot.create("Line Plot", "Generation", "GabRat", shortGenArray, GabRat_MeanArray);
 				Plot.setLineWidth(3);
-				Plot.setFontSize(21);
-				Plot.setAxisLabelSize(28, "bold");
+				Plot.setFontSize(30);
+				Plot.setAxisLabelSize(36, "bold");
+				Plot.setOptions("addhspace=15 addvspace=15");
 				
 				Plot.setLimits(0,  xMax, yMin, yMax);
 				Plot.setLineWidth(2);
@@ -2911,15 +3296,18 @@ plotScale = 522/width;
 ts = "x=- y=- width="+ width*plotScale + " height=" + height*plotScale  + "  interpolation=None";
 ts2 = "width="+ width*plotScale + " height=" + height*plotScale + " position=Center";
 
+plotHeight = 600;
+plotWidth = 600;
+
 run("Scale...", ts);
 run("Canvas Size...", ts2);
 
 
 
 
-//--------------------------------------------
-// Get Target Pictures
-//============================================
+//=================================================
+//Get Top 9 Target Pictures
+//=================================================
 
 
 GenNum = survivalDIR + "generation_" + (survivalArray.length-1) +"_survival"  + txt;
@@ -2946,7 +3334,7 @@ PhenotypePath =  survivalDIR+"GenPat_"+ (survivalArray.length-1) +"/";
 
 				FitnessRanked = Array.rankPositions(FitnessArray2);
 
-				index=Array.getSequence(FitnessRanked.length);
+				photoIndex=Array.getSequence(FitnessRanked.length);
 
 				IDRankedarray = newArray();
 
@@ -2968,21 +3356,23 @@ for(j=0; j<3; j++){
 IDnam = IDRankedarray[(i*3)+j];
 
 open(PhenotypePath+IDnam+".tif");
-
-ts = "x=- y=- width="+ 157 + " height=" + 157  + "  interpolation=None";
-ts2 = "width="+ 157 + " height=" + 157 + " position=Center";
-
-run("Scale...", ts);
-run("Canvas Size...", ts2);
-
+wait(10);
+selectImage(IDnam+".tif");
+run("Select All");
+run("Size...", "width=157 height=157 depth=1 constrain average interpolation=Bilinear");
+run("Select All");
+run("Copy");
+close(IDnam+".tif");
 
 selectImage("EndScreen");
 slide=3;
 
 setSlice(slide);
 
-addImageString = "image="+IDnam+".tif"+ " x=" + 821 + (177*j) + " y=" + 300 + (186*i) + " opacity=100 zero";
-run("Add Image...", addImageString);
+makeRectangle( 817  + (177*j) + (xButtonShift/2), 300 + (186*i), 157,157);
+setPasteMode("Transparent-zero");
+run("Paste");
+run("Select None");
 
 setJustification("center");
 setColor("white");
@@ -2990,7 +3380,7 @@ setFont("SansSerif",18);
 
 Rank = "Rank " + j+1 + (i*3);
 
-drawString(Rank , 817 + (177*j)+(177/2), (300 + (186*i))+ 186);
+drawString(Rank , 817 + (177*j)+(177/2) + (xButtonShift/2), (300 + (186*i))+ 186);
 
 
 }
@@ -2999,13 +3389,15 @@ drawString(Rank , 817 + (177*j)+(177/2), (300 + (186*i))+ 186);
 //Array.show(IDarrayCheck, IDarray, genomeArray);
 
 
-// Save Data
-//------------------------------
+//=================================================
+//Save Data
+//=================================================
 
 
+			
 dataFile = File.open(survivalDIR+"Data_Output_" + FolderName + ".txt");  
 
-printArray = Array.concat("Generation", "ID", "Survival_Time", "Response_Time", "Capture_Time", "Luminance_Difference", "Contrast_Difference", "Colour_Difference", "GabRat_Edge_Disruption", "Image_ID", "X_Coordinate", "Y_Coordinate", "Rotation", "Flip");
+printArray = Array.concat("Generation", "ID", "Survival_Time", "Response_Time", "Capture_Time", "Luminance_Difference", "Contrast_Difference", "Colour_Difference", "GabRat_Edge_Disruption","BgLocal_Luminance", "BgLocal_Contrast", "BgLocal_A", "BgLocal_B", "Target_Luminance", "Target_Contrast", "Target_A", "Target_B",  "Image_ID", "X_Coordinate", "Y_Coordinate", "Rotation", "Flip");
 
 printString = String.join(printArray, "\t");
 
@@ -3016,9 +3408,9 @@ print(dataFile, printString);
 
 for(i=0; i< GenArray.length;i++){
 
-printArray = Array.concat(GenArray[i], IDarray[i], FitnessArray[i], ResponseArray[i], CaptureArray[i], LumArray2[i], PatternArray2[i], ColourArray2[i], GabRatArray2[i], imageNumArray[i], XcoordArray[i], YcoordArray[i], rotationArray[i], flipArray[i], genomeArray[i] );
+printArray = Array.concat(GenArray[i], IDarray[i], FitnessArray[i], ResponseArray[i], CaptureArray[i], LumArray2[i], PatternArray2[i], ColourArray2[i], GabRatArray2[i],bgLumArray2[i],bgCtrstArray2[i],bgAvalArray2[i],bgBvalArray2[i],targetLumArray2[i],targetCtrstArray2[i],targetAvalArray2[i],targetBvalArray2[i], imageNumArray[i], XcoordArray[i], YcoordArray[i], rotationArray[i], flipArray[i] );
 
-printString = String.join(printArray, "\t");
+printString = String.join(printArray, "\t") + "\t" + genomeArray[i];
 
 print(dataFile, printString);
 	
@@ -3027,76 +3419,144 @@ print(dataFile, printString);
 File.close(dataFile);
 
 
-	
+
+
+//=================================================
+//Get First and Last Genome for Distribution Plot
+//=================================================
+
+genFirst=File.openAsString( survivalDIR  + "generation_0" + txt);
+genFirstRows = split(genFirst, "\n");
+
+genLast =File.openAsString( survivalDIR + "generation_" + (survivalArray.length-1)  + txt);
+genLastRows = split(genLast, "\n");
+
+GeneTitleList = split(genFirstRows[0], "\t");
+GeneChoiceList = Array.slice(GeneTitleList, 1, GeneTitleList.length-2);
+
+
+//=================================================
+//Display Averages
+//=================================================
 
 
 // Give Average times
 //------------------------------
 selectImage("EndScreen");
-setColor(255,255, 255);
+setColor("white");
 setFont("Caldibri ", 30);
 setJustification("left");
 
  stringT= "Average Times:";
- drawString(stringT, 195, 340, "#16150D");
+ drawString(stringT, 195 + (xButtonShift/2), 340);
  
  
  setFont("Caldibri ", 24);
 
  stringT= "Generation 0 = " + toString( (FitnessMeanArray[0]/1000), 2)+ " seconds";
- drawString(stringT, 195, 390, "#16150D");
+ drawString(stringT, 195 + (xButtonShift/2), 390);
  
  stringT= "Generation "+ FitnessMeanArray.length-1 +" = " + toString((FitnessMeanArray[FitnessMeanArray.length-1]/1000), 2)+ " seconds";
- drawString(stringT, 195, 430, "#16150D");
+ drawString(stringT, 195 + (xButtonShift/2), 430);
+
+selectImage("CopyPlot");
+run("Select All");
+Roi.getBounds(x, y, plotWidth, plotHeight);
+run("Copy");
+setPasteMode("transparent-zero");
 
 
-run("Add Image...", "image=CopyPlot x=134 y=454 opacity=100");
-
-
+selectImage("EndScreen");
+setSlice(3);
+makeRectangle(134 + (xButtonShift/2),454,plotWidth, plotHeight);
+run("Paste");
+run("Select None");
 
 
 setSlice(4);
 
 
-// Give Average times Camo Stats
+// Give Average Camo Stats
 //------------------------------
+open(getDirectory("plugins") + "1 CamoEvo/Interface/buttonCover.jpg");
+selectImage("EndScreen");
+setSlice(4);
 
-	setFont("Caldibri ", 30);
-	stringB= "                                                          ";
-drawString(stringB, 861 , 290, "#16150D");
-stringT= "Luminance Distance:";
- drawString(stringT, 861 , 290, "#16150D");
+overlayPasteX = 170 + (xButtonShift/2);
+
+run("Add Image...", "image=buttonCover.jpg x=overlayPasteX  y=300 opacity=60");
+
+run("Add Image...", "image=buttonCover.jpg x=overlayPasteX y=420 opacity=60");
+
+run("Add Image...", "image=buttonCover.jpg x=overlayPasteX y=550 opacity=60");
+
+run("Add Image...", "image=buttonCover.jpg x=overlayPasteX y=680 opacity=60");
+
+Overlay.moveSelection(0, 170 + xButtonShift/2, -300);
+Overlay.moveSelection(1, 170 + xButtonShift/2, 420);
+Overlay.moveSelection(2, 170 + xButtonShift/2, 550);
+Overlay.moveSelection(3, 170 + xButtonShift/2, 680);
+
+setColor("#16150D");
+fillRect(792 + (xButtonShift/2), 248, 562, 574);
+
+setColor("white");
+
+setFont("Caldibri ", 30);
+
+stringT= "Luminance Match:";
+ drawString(stringT, 830 + (xButtonShift/2), 290);
  
-  setFont("Caldibri ", 24);
-			stringB= "                                                             ";
-		  stringT= "Distance of Mean Luminance.";
-		 drawString(stringB, 861 , 330, "#16150D");
-		 drawString(stringT, 861 , 330, "#16150D");
+				  if( startsWith(getInfo("os.name"), "Windows") ==1){
+  					setFont("Caldibri ", 22, "bold");
+							} else {
+  					setFont("Caldibri ", 18, "bold");
+					}	
+					
+		  stringT= "Difference of Mean Luminance.";
+		
+		 drawString(stringT, 830 + (xButtonShift/2) , 330);
 		 
-		   stringT= "As distance 'decreases' camouflage improves.";
-		 drawString(stringB, 861 , 370, "#16150D");
-		 drawString(stringT,  861 ,370, "#16150D");
+		   stringT= "As this difference 'decreases' camouflage improves.";
+		
+		 drawString(stringT,  830 + (xButtonShift/2) ,370);
 		 
 			stringT= "Generation 0 mean = " + toString (Lum_MeanArray[0]);
-		 drawString(stringB, 861 , 410, "#16150D");
-		 drawString(stringT, 861 , 410, "#16150D");
+		 
+		 drawString(stringT, 830 + (xButtonShift/2) , 410);
 		 
 			 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Lum_MeanArray[FitnessMeanArray.length-1]);
-		 drawString(stringB, 861 , 450, "#16150D");
-		 drawString(stringT, 861 , 450, "#16150D");
+		 
+		 drawString(stringT, 830 + (xButtonShift/2) , 450);
+				
+				selectImage("LuminancePlot");
+				run("Select All");
+				Roi.getBounds(x, y, plotWidth, plotHeight);
+				run("Copy");
+				setPasteMode("transparent-zero");
 
-run("Add Image...", " image=LuminancePlot x=821 y=474 opacity=100");
+
+				selectImage("EndScreen");
+				setSlice(4);
+				makeRectangle(800 + (xButtonShift/2),474,plotWidth, plotHeight);
+				run("Paste");
+				run("Select None");
+				setColor("White");
 
 setSlice(4);
 
-//-------------------------------------------------
-// Show Final Menu
-//-------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------
+// 3) Show Analysis Menu
+//----------------------------------------------------------------------------------------------------------------
+
+//=================================================
+//Close Unnecessary Slides
+//=================================================
+
+
 selectImage("EndScreen");
 slide=2;
 setSlice(slide);
-setBatchMode("Show");
-setLocation(xScale, yScale, wScale, hScale);
 
 
 if(isOpen("Evolving")){
@@ -3107,25 +3567,22 @@ if(isOpen("Analysing")){
 close("Analysing");
 }
 
-if(isOpen("Loading")){
-close("Loading");
-}
 
+
+//=================================================
+//Show the end screen
+//=================================================
 
 previewGate = 0;
 downloadGate = 0;
 endGate = 0;
 
+run("Canvas Size...", "width=&fullWidth height=&fullHeight  position=Center");
+setBatchMode("Show");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
 
-
-wait(100);
-
-
-//TestPoint("");
 
 while(endGate==0){
-
-wait(400);
 
 slide=2;
 
@@ -3137,7 +3594,7 @@ previewGate = 0;
 //-----------------------------------------
 
 
-	b1_x1= 386;
+	b1_x1= 386 + (xButtonShift/2);
 	b1_y1= 478;
 
 	b1_x2= b1_x1 + 694;
@@ -3148,7 +3605,7 @@ previewGate = 0;
 //-----------------------------------------
 
 
-	b2_x1= 386;
+	b2_x1= 386 + (xButtonShift/2);
 	b2_y1= 688;
 
 	b2_x2= b2_x1 + 694;
@@ -3159,7 +3616,7 @@ previewGate = 0;
 //-----------------------------------------
 
 
-	b3_x1= 386;
+	b3_x1= 386 + (xButtonShift/2);
 	b3_y1= 896;
 
 	b3_x2= b3_x1 + 694;
@@ -3167,28 +3624,35 @@ previewGate = 0;
 
 
 
-	setTool("point");
+	
+	
+if(getSliceNumber()==2){
+wait(200);
 
-		if(selectionType!=-1){
+	flag=0;
+	getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
 
-		
-		Roi.getCoordinates(xpoints, ypoints);
-		clickX=xpoints[0];
-		clickY=ypoints[0];
+		clickX=mouseX; 
+		clickY=mouseY;
 
 		//Button 1
 		//-----------------
 		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
+		Tool=1; 
+		  if(flag&16!=0){
 
 		previewGate = 1;
-	
-
+		setSlice(3);
+		slide=3;
 		}
-		
+		}
 		
 		//Button 2
 		//-----------------
 		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
+		
+		Tool=1; 
+		  if(flag&16!=0){
 
 		downloadGate = 1;
 		
@@ -3201,48 +3665,63 @@ previewGate = 0;
 		if(File.exists(survivalDIR+"Data_Output_" + FolderName + ".txt")){
 		File.copy(survivalDIR+"Data_Output_" + FolderName + ".txt", datafileDIR + "Data_Output_" + FolderName + ".txt");
 		}
-
+		
+		wait (200);
+		}
 		}
 		
 		
 		//Button 3
 		//-----------------
 		if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
+		Tool=1; 
+		  if(flag&16!=0){
 
 		endGate = 1;
 		
-
+		wait (200);
+		}
 		}
 		
 
 		run("Select None");
+		if(Tool != ToolOld){
+			if(Tool == 0)
+				setTool("arrow");
+			if(Tool  == 1)
+				setTool("hand");
+		ToolOld= Tool;
+		}
 
 		}
 
 
+// Present the Preview Screen
+//---------------------------------------
 
 if(previewGate == 1) {
+wait(300);
 
-				//BUTTON 1, Back to Menu
+				//BUTTON 1, Right Arrow
 				//-----------------------------------------
 
 
-					b1_x1= 952;
-					b1_y1= 902;
+					b1_x1= 1013  + (xButtonShift/2);
+					b1_y1= 898;
 
-					b1_x2= b1_x1 + 236;
-					b1_y2= b1_y1 + 152;
+					b1_x2= b1_x1 + 205;
+					b1_y2= b1_y1 + 160;
 					
 					
-				//BUTTON 2, Camo Settins
+				//BUTTON 2, Left Arrow
 				//-----------------------------------------
 
 
-					b2_x1= 212;
-					b2_y1= 902;
+					b2_x1= 260 + (xButtonShift/2);
+					b2_y1= 898;
 
-					b2_x2= b2_x1 + 388;
-					b2_y2= b2_y1 + 152;
+					b2_x2= b2_x1 + 205;
+					b2_y2= b2_y1 + 160;
 					
 					
 					
@@ -3250,7 +3729,7 @@ if(previewGate == 1) {
 				//-----------------------------------------
 
 
-					b3_x1= 182;
+					b3_x1= 182 + (xButtonShift/2);
 					b3_y1= 310;
 
 					b3_x2= b3_x1 + 448;
@@ -3261,7 +3740,7 @@ if(previewGate == 1) {
 				//-----------------------------------------
 
 
-					b4_x1= 182;
+					b4_x1= 182 + (xButtonShift/2);
 					b4_y1= 440;
 
 					b4_x2= b4_x1 + 448;
@@ -3272,7 +3751,7 @@ if(previewGate == 1) {
 				//-----------------------------------------
 
 
-					b5_x1= 182;
+					b5_x1= 182 + (xButtonShift/2);
 					b5_y1= 580;
 
 					b5_x2= b5_x1 + 448;
@@ -3282,182 +3761,308 @@ if(previewGate == 1) {
 				//-----------------------------------------
 
 
-					b6_x1= 182;
+					b6_x1= 182 + (xButtonShift/2);
 					b6_y1= 698;
 
 					b6_x2= b6_x1 + 448;
 					b6_y2= b6_y1 + 96;
-					
+				
+				
+				//BUTTON 7, Gene Choice
+				//-----------------------------------------
+
+
+					b7_x1= 534 + (xButtonShift/2);
+					b7_y1= 769;
+
+					b7_x2= b7_x1 + 409;
+					b7_y2= b7_y1 + 159;
 					
 				
-				whileGate=0;
-
-				run("Select None");
 				
-				slide = 3;
+				
+	whileGate=0;
 
-				while(whileGate==0){
+	run("Select None");
+				
+	slide = 3;
 
-				wait(100);
+	while(whileGate==0){
 
-					selectImage("EndScreen");
+	wait(100);
 
-					setTool("point");
+	selectImage("EndScreen");
 					
-					setSlice(slide);
 
-						if(selectionType!=-1){
+	
+	setSlice(slide);
+	getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
+	
+		{
 
-						Roi.getCoordinates(xpoints, ypoints);
-						clickX=xpoints[0];
-						clickY=ypoints[0];
+		flag=0;
+		getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
+		clickX=mouseX; 
+		clickY=mouseY;
 
 						//Button 1
 						//-----------------
 						if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
 
+						Tool=1;
+						if(flag&16!=0){wait (200);
 						
+						if(slide==5){
 						whileGate=1;
+						}
+						
+						if(slide==4){
+						slide=5;
+						}
+						
+						if(slide==3){
+						slide=4;
+						}
+						
 
-
-					
+						}
 						}
 						
 						//Button 2
 						//-----------------
 						if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
 
-						if(slide==3){
-						slide=4;
-						}else{
-					
-						if(slide==4){
-						slide=3;
-						} 
-						}
+						Tool=1;   
+						if(flag&16!=0){wait (200);
 
+						
+						if(slide==3){
+						whileGate=1;
 						}
 						
+						if(slide==4){
+						slide=3;
+						}
+						
+						if(slide==5){
+						slide=4;
+						}
+
+
+
+
+						}
+						}
 						
 						//Button 3
 						//-----------------
 						if( clickX > b3_x1   &&    clickX < b3_x2   &&   clickY > b3_y1 &&  clickY < b3_y2) {
 
 						if(slide==4){
+						Tool=1;   
+						if(flag&16!=0){wait (200);
+						
+						Overlay.moveSelection(0, 170 + xButtonShift/2, -300);
+						Overlay.moveSelection(1, 170 + xButtonShift/2, 420);
+						Overlay.moveSelection(2, 170 + xButtonShift/2, 550);
+						Overlay.moveSelection(3, 170 + xButtonShift/2, 680);
 
-						stringT= "Luminance Distance:";
-						 
-					setFont("Caldibri ", 30);
-					stringB= "                                                          ";
-				drawString(stringB, 861 , 290, "#16150D");
-				 drawString(stringT, 861 , 290, "#16150D");
-				 
-				  setFont("Caldibri ", 24);
-							stringB= "                                                          ";
-						  stringT= "Distance of Mean Luminance.";
-						 drawString(stringB, 861 , 330, "#16150D");
-						 drawString(stringT, 861 , 330, "#16150D");
-						 
-						   stringT= "As distance 'decreases' camouflage improves.";
-						 drawString(stringB, 861 , 370, "#16150D");
-						 drawString(stringT,  861 ,370, "#16150D");
-						 
-							stringT= "Generation 0 mean = " + toString (Lum_MeanArray[0]);
-						 drawString(stringB, 861 , 410, "#16150D");
-						 drawString(stringT, 861 , 410, "#16150D");
-						 
-							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Lum_MeanArray[FitnessMeanArray.length-1]);
-						 drawString(stringB, 861 , 450, "#16150D");
-						 drawString(stringT, 861 , 450, "#16150D");
+									setJustification("centre");
+									setColor("#16150D");
+									fillRect(792 + (xButtonShift/2), 248, 562, 574);
 
-				run("Add Image...", " image=LuminancePlot x=821 y=474 opacity=100");
+									setColor("white");
+									setFont("Caldibri ", 30);
+									stringT= "Luminance Match:";
+									
+										
+									 drawString(stringT, 830 + (xButtonShift/2), 290, "#16150D");
+									 
+									  if( startsWith(getInfo("os.name"), "Windows") ==1){
+										setFont("Caldibri ", 22, "bold");
+												} else {
+										setFont("Caldibri ", 18, "bold");
+										}	
+
+											  stringT= "Difference in Mean Luminance.";
+
+											 drawString(stringT, 830  + (xButtonShift/2), 330, "#16150D");
+											 
+											   stringT= "As difference 'decreases' camouflage improves.";
+
+											 drawString(stringT,  830 + (xButtonShift/2),370, "#16150D");
+											 
+												stringT= "Generation 0 mean = " + toString (Lum_MeanArray[0]);
+
+											 drawString(stringT, 830 + (xButtonShift/2), 410, "#16150D");
+											 
+												 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Lum_MeanArray[FitnessMeanArray.length-1]);
+
+											 drawString(stringT, 830 + (xButtonShift/2), 450, "#16150D");
+
+
+									selectImage("LuminancePlot");
+									run("Select All");
+									Roi.getBounds(x, y, plotWidth, plotHeight);
+									run("Copy");
+									setPasteMode("transparent-zero");
+
+
+									selectImage("EndScreen");
+									setSlice(4);
+									makeRectangle(800 + (xButtonShift/2),474,plotWidth, plotHeight);
+									run("Paste");
+									run("Select None");
+									setColor("White");
+				
+				
+				
 								
 						}
 
 						}
-						
+						}
 						
 					
 							//Button 4
 						//-----------------
 						if( clickX > b4_x1   &&    clickX < b4_x2   &&   clickY > b4_y1 &&  clickY < b4_y2) {
 
-					
-						if(slide==4){
 						
+						if(slide==4){
 
-						stringT= "Contrast Difference:";
-						 
-					setFont("Caldibri ", 30);
-					stringB= "                                                          ";
-				drawString(stringB, 861 , 290, "#16150D");
-				 drawString(stringT, 861 , 290, "#16150D");
-				 
-				  setFont("Caldibri ", 24);
-							stringB= "                                                                 ";
-						  stringT= "Distance of Luminance StDev.";
-						 drawString(stringB, 861 , 330, "#16150D");
-						 drawString(stringT, 861 , 330, "#16150D");
-						 
-						   stringT= "As distance 'decreases' camouflage improves.";
-						 drawString(stringB, 861 , 370, "#16150D");
-						 drawString(stringT,  861 ,370, "#16150D");
-						 
-							stringT= "Generation 0 mean = " + toString (Pattern_MeanArray[0]);
-						 drawString(stringB, 861 , 410, "#16150D");
-						 drawString(stringT, 861 , 410, "#16150D");
-						 
-							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Pattern_MeanArray[FitnessMeanArray.length-1]);
-						 drawString(stringB, 861 , 450, "#16150D");
-						 drawString(stringT, 861 , 450, "#16150D");
+						Tool=1;   
+						if(flag&16!=0){wait (200);
+						
+						Overlay.moveSelection(0, 170 + xButtonShift/2, 300);
+						Overlay.moveSelection(1, 170 + xButtonShift/2, -420);
+						Overlay.moveSelection(2, 170 + xButtonShift/2, 550);
+						Overlay.moveSelection(3, 170 + xButtonShift/2, 680);
+						
+									setJustification("centre");
+									setColor("#16150D");
+									fillRect(792 + (xButtonShift/2), 248, 562, 574);
 
-				run("Add Image...", " image=PatternPlot x=821 y=474 opacity=100");
+									setColor("white");
+									
+											
+									stringT= "Contrast Match:";
+											 
+										setFont("Caldibri ", 30);
+									 drawString(stringT, 830 + (xButtonShift/2), 290);
+									 
+									  if( startsWith(getInfo("os.name"), "Windows") ==1){
+										setFont("Caldibri ", 22, "bold");
+												} else {
+										setFont("Caldibri ", 18, "bold");
+										}	
 
-								
-						}
 
-						}
+											  stringT= "Difference in Luminance StDev.";
+											
+											 drawString(stringT, 830 + (xButtonShift/2), 330);
+											 
+											   stringT= "As difference 'decreases' camouflage improves.";
+
+											 drawString(stringT,  830 + (xButtonShift/2),370);
+											 
+												stringT= "Generation 0 mean = " + toString (Pattern_MeanArray[0]);
+
+											 drawString(stringT, 830 + (xButtonShift/2), 410);
+											 
+												 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Pattern_MeanArray[FitnessMeanArray.length-1]);
+
+											 drawString(stringT, 830 + (xButtonShift/2), 450);
+
+
+									selectImage("PatternPlot");
+									run("Select All");
+									Roi.getBounds(x, y, plotWidth, plotHeight);
+									run("Copy");
+									setPasteMode("transparent-zero");
+
+
+									selectImage("EndScreen");
+									setSlice(4);
+									makeRectangle(800 + (xButtonShift/2),474,plotWidth, plotHeight);
+									run("Paste");
+									run("Select None");
+									setColor("White");
+													
+											}
+
+											}
+											}
+						
 						
 								//Button 5
 						//-----------------
 						if( clickX > b5_x1   &&    clickX < b5_x2   &&   clickY > b5_y1 &&  clickY < b5_y2) {
 
-					
+
 						if(slide==4){
+						Tool=1;   
+						if(flag&16!=0){wait (200);
 						
+						
+						Overlay.moveSelection(0, 170 + xButtonShift/2, 300);
+						Overlay.moveSelection(1, 170 + xButtonShift/2, 420);
+						Overlay.moveSelection(2, 170 + xButtonShift/2, -550);
+						Overlay.moveSelection(3, 170 + xButtonShift/2, 680);						
+						
+									setJustification("centre");
+									setColor("#16150D");
+									fillRect(792 + (xButtonShift/2), 248, 562, 574);
 
-						stringT= "Colour Distance:";
-						 
-					setFont("Caldibri ", 30);
-					stringB= "                                                          ";
-				drawString(stringB, 861 , 290, "#16150D");
-				 drawString(stringT, 861 , 290, "#16150D");
-				 
-				  setFont("Caldibri ", 24);
-							stringB= "                                                                 ";
-						  stringT= "Distance of Mean Colour.";
-						 drawString(stringB, 861 , 330, "#16150D");
-						 drawString(stringT, 861 , 330, "#16150D");
-						 
-						   stringT= "As distance 'decreases' camouflage improves.";
-						 drawString(stringB, 861 , 370, "#16150D");
-						 drawString(stringT,  861 ,370, "#16150D");
-						 
-							stringT= "Generation 0 mean = " + toString (Colour_MeanArray[0]);
-						 drawString(stringB, 861 , 410, "#16150D");
-						 drawString(stringT, 861 , 410, "#16150D");
-						 
-							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Colour_MeanArray[FitnessMeanArray.length-1]);
-						 drawString(stringB, 861 , 450, "#16150D");
-						 drawString(stringT, 861 , 450, "#16150D");
+									setColor("white");
+									
+											stringT= "Colour Match:";
+											 
+										setFont("Caldibri ", 30);
 
-				run("Add Image...", " image=ColourPlot x=821 y=474 opacity=100");
+									 drawString(stringT, 830 + (xButtonShift/2), 290);
+									 
+									  if( startsWith(getInfo("os.name"), "Windows") ==1){
+										setFont("Caldibri ", 22, "bold");
+												} else {
+										setFont("Caldibri ", 18, "bold");
+										}	
 
-								
-						}
 
-						}
-							
+											  stringT= "Difference of Mean Colour.";
+										
+											 drawString(stringT, 830 + (xButtonShift/2), 330);
+											 
+											   stringT= "As difference 'decreases' camouflage improves.";
+										
+											 drawString(stringT,  830 + (xButtonShift/2),370);
+											 
+												stringT= "Generation 0 mean = " + toString (Colour_MeanArray[0]);
+										
+											 drawString(stringT, 830 + (xButtonShift/2), 410);
+											 
+												 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(Colour_MeanArray[FitnessMeanArray.length-1]);
+										
+											 drawString(stringT, 830 + (xButtonShift/2), 450);
+
+									
+									selectImage("ColourPlot");
+									run("Select All");
+									Roi.getBounds(x, y, plotWidth, plotHeight);
+									run("Copy");
+									setPasteMode("transparent-zero");
+
+
+									selectImage("EndScreen");
+									setSlice(4);
+									makeRectangle(800 + (xButtonShift/2),474,plotWidth, plotHeight);
+									run("Paste");
+									run("Select None");
+									setColor("White");				
+											}
+
+											}
+											}	
 
 
 								//Button 6
@@ -3466,45 +4071,287 @@ if(previewGate == 1) {
 
 					
 						if(slide==4){
+						Tool=1;   
+						if(flag&16!=0){wait (200);				
 						
+						Overlay.moveSelection(0, 170 + xButtonShift/2, 300);
+						Overlay.moveSelection(1, 170 + xButtonShift/2, 420);
+						Overlay.moveSelection(2, 170 + xButtonShift/2, 550);
+						Overlay.moveSelection(3, 170 + xButtonShift/2, -680);
+
 						
-						stringT= "GabRat Edge Disruption:";
-						 
-					setFont("Caldibri ", 30);
-					stringB= "                                                          ";
-				drawString(stringB, 861 , 290, "#16150D");
-				 drawString(stringT, 861 , 290, "#16150D");
-				 
-				  setFont("Caldibri ", 24);
-							stringB= "                                                                    ";
-						  stringT= "GabRat edge disruption measure.";
-						 drawString(stringB, 861 , 330, "#16150D");
-						 drawString(stringT, 861 , 330, "#16150D");
-						 
-						   stringT= "As disruption 'increases' camouflage improves.";
-						 drawString(stringB, 861 , 370, "#16150D");
-						 drawString(stringT,  861 ,370, "#16150D");
-						 
-							stringT= "Generation 0 mean = " + toString (GabRat_MeanArray[0]);
-						 drawString(stringB, 861 , 410, "#16150D");
-						 drawString(stringT, 861 , 410, "#16150D");
-						 
-							 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(GabRat_MeanArray[FitnessMeanArray.length-1]);
-						 drawString(stringB, 861 , 450, "#16150D");
-						 drawString(stringT, 861 , 450, "#16150D");
+							setJustification("centre");
+							setColor("#16150D");
+							fillRect(792 + (xButtonShift/2), 248, 562, 574);
 
-				run("Add Image...", " image=GabRatPlot x=821 y=474 opacity=100");
+							setColor("white");
+										
+									stringT= "Edge Disruption:";
+									 
+								setFont("Caldibri ", 30);
+							 drawString(stringT, 830 + (xButtonShift/2), 290);
+							 
+							  if( startsWith(getInfo("os.name"), "Windows") ==1){
+								setFont("Caldibri ", 22, "bold");
+										} else {
+								setFont("Caldibri ", 18, "bold");
+								}	
 
-								
+									  stringT= "Level of GabRat.";
+									
+									 drawString(stringT, 830 + (xButtonShift/2), 330);
+									 
+									   stringT= "As GabRat 'increases' camouflage improves.";
+							
+									 drawString(stringT,  830 + (xButtonShift/2),370);
+									 
+										stringT= "Generation 0 mean = " + toString (GabRat_MeanArray[0]);
+							
+									 drawString(stringT, 830 + (xButtonShift/2), 410);
+									 
+										 stringT= "Generation "+ FitnessMeanArray.length-1 +" mean = " + toString(GabRat_MeanArray[FitnessMeanArray.length-1]);
+									
+									 drawString(stringT, 830 + (xButtonShift/2), 450);
+
+
+						
+							selectImage("GabRatPlot");
+							run("Select All");
+							Roi.getBounds(x, y, plotWidth, plotHeight);
+							run("Copy");
+							setPasteMode("transparent-zero");
+
+
+							selectImage("EndScreen");
+							setSlice(4);
+							makeRectangle(800 + (xButtonShift/2),474,plotWidth, plotHeight);
+							run("Paste");
+							run("Select None");
+							setColor("White");
+											
+									}
+
+									}	
+									}
+									
+									
+								//Button 7
+						//-----------------
+						if( clickX > b7_x1   &&    clickX < b7_x2   &&   clickY > b7_y1 &&  clickY < b7_y2) {
+
+					
+						if(slide==5){
+						Tool=1;   
+						if(flag&16!=0){wait (200);	
+									
+
+									Dialog.createNonBlocking("Get Gene");
+									Dialog.addChoice("Choose a Gene", GeneChoiceList,0);
+									Dialog.show();
+
+									GeneChoice = Dialog.getChoice();
+									GeneIndex = index(GeneTitleList, GeneChoice);
+
+									firstGeneValues = newArray(genFirstRows.length-1);
+									lastGeneValues = newArray(genFirstRows.length-1);
+
+									for(i=0; i<firstGeneValues.length; i++ ) {
+
+									tempArray1  = split(genFirstRows[i+1], "\t");
+									firstGeneValues[i] =   parseFloat(tempArray1[GeneIndex]) ;
+
+									tempArray2  = split(genLastRows[i+1], "\t");
+									lastGeneValues[i] =  parseFloat(tempArray2[GeneIndex]) ;
+									
+									}
+
+
+									yArray = newArray(firstGeneValues.length);
+
+									if(isOpen("Gen_0")){
+									close("Gen_0");
+									}
+
+									if(isOpen("Gen_15")){
+									close("Gen_15");
+									}
+
+
+									Array.getStatistics( firstGeneValues, min, max, firstMean, firstStdDev);
+									Array.getStatistics( lastGeneValues, min, max, lastMean,lastStdDev);
+									
+									
+									if(isNaN(firstStdDev)){
+									firstStdDev = 0;
+									}
+									if(isNaN(lastStdDev)){
+									lastStdDev = 0;
+									}
+
+									if(isOpen("GenePlots")){
+									close("GenePlots");
+									}
+
+
+									selectImage("EndScreen");
+
+									setColor("#16150D");
+									fillRect(226 + (xButtonShift/2), 318, 1020, 406);
+									setColor("white");
+
+									// =================================================
+									// Create new Plot Image
+									// =================================================
+
+
+									//makeRectangle(578, 320,  680, 400);
+
+									plotWidth = 800;
+									plotHeight = 400;
+
+									newImage("GenePlots", "RGB black", plotWidth, plotHeight, 1);
+									selectImage("GenePlots");
+						
+
+
+									ovalW = 10;
+									ovalH =60;
+									lineW = plotWidth*5/6;
+									setLineWidth(2);
+									
+									
+									//-------------------------
+									// Generation First
+									//-------------------------
+
+									rtX = (plotWidth-(lineW))/2;
+									rtY = (plotHeight*0.25)+20;
+
+									setColor("white");
+									fillRect(rtX, rtY,(lineW), 2);
+
+									setJustification("center");
+									setColor("white");
+									setFont("Caldibri ", 26);
+									stringT= "Generation 0";
+									drawString(stringT, plotWidth/2, rtY+ovalH+30);
+
+									setFont("Caldibri ", 18);
+									stringT= "0.0";
+									drawString(stringT, rtX+2, rtY+ovalH+10);
+
+									setFont("Caldibri ", 18);
+									stringT= "1.0";
+									drawString(stringT, rtX+(lineW)-2, rtY+ovalH+10);
+
+									setColor("gray");
+									for(i =0; i<firstGeneValues.length; i++){
+									xCoord = rtX + (firstGeneValues[i]*((lineW)-ovalW));
+									rand = random("gaussian");
+									makeOval(xCoord+rand, rtY-(ovalH)/2, ovalW, ovalH);
+									run("Add...", "value=80");
+									drawOval(xCoord+rand, rtY-(ovalH)/2, ovalW, ovalH);
+									}
+
+
+
+									//-------------------------
+									// Generation Last
+									//-------------------------
+
+									rtX = (plotWidth-(lineW))/2;
+									rtY = rtY+165;
+
+									setColor("white");
+									fillRect(rtX, rtY,(lineW), 2);
+
+									setJustification("center");
+									setColor("white");
+									setFont("Caldibri ", 26);
+									stringT= "Generation " + (survivalArray.length-1);
+									drawString(stringT, plotWidth/2, rtY+ovalH+30);
+
+									setFont("Caldibri ", 18);
+									stringT= "0.0";
+									drawString(stringT, rtX+2, rtY+ovalH+10);
+
+									setFont("Caldibri ", 18);
+									stringT= "1.0";
+									drawString(stringT, rtX+(lineW)-2, rtY+ovalH+10);
+
+									setColor("gray");
+									for(i =0; i<lastGeneValues.length; i++){
+									xCoord = rtX + (lastGeneValues[i]*((lineW)-ovalW));
+									rand = random("gaussian");
+									makeOval(xCoord+rand, rtY-(ovalH)/2, ovalW, ovalH);
+									run("Add...", "value=80");
+									drawOval(xCoord+rand, rtY-(ovalH)/2, ovalW, ovalH);
+									}
+
+
+									run("Select All");
+									run("Copy");
+
+									pasteX = 448 + (xButtonShift/2);
+									pasteY = 320;
+
+									selectImage("EndScreen");
+									makeRectangle(pasteX, pasteY, plotWidth, plotHeight);
+									setPasteMode("Transparent-zero");
+									run("Paste");
+									run("Select None");
+									
+									close("GenePlots");
+
+									setJustification("center");
+									setColor("#66D122");
+									setFont("Caldibri ", 30);
+									stringT= GeneChoice;
+									drawString(stringT, pasteX+(plotWidth/2), 360);
+
+
+
+
+									setJustification("right");
+									setColor("white");
+									setFont("Caldibri ", 24);
+									stringT= "Mean = " + d2s(firstMean,3);
+									drawString(stringT,pasteX, 430);
+
+									stringT= "StDv = " +d2s(firstStdDev,3);
+									drawString(stringT, pasteX, 430+60);
+
+									stringT= "Mean = " + d2s(lastMean,3);
+									drawString(stringT,pasteX, 590);
+
+									stringT= "StDv = " + d2s(lastStdDev,3);
+									drawString(stringT, pasteX, 590+60);
+
+
+
+
+						
+									
+									
+						}			
+									
+									
+									
+						}		
+									
 						}
-
-						}	
-						
+									
 
 						
 
 				run("Select None");
-
+				if(Tool != ToolOld){
+			if(Tool == 0)
+				setTool("arrow");
+			if(Tool  == 1)
+				setTool("hand");
+		ToolOld= Tool;
+}
 
 				}
 
@@ -3514,6 +4361,7 @@ if(previewGate == 1) {
 				}
 				
 
+
 }
 
 if(endGate == 1){
@@ -3521,9 +4369,15 @@ if(endGate == 1){
 
 if(downloadGate==1){
 
+if(isOpen("Loading")){
+selectImage("Loading");
+
+setBatchMode("Show");
+run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
 setBatchMode(false);
-if(isOpen("blank")){
-selectImage("blank");
 close("\\Others");
 } else{
 close("*");
@@ -3533,7 +4387,7 @@ exit
 
 } else {
 
-slide=5;
+slide=6;
 
 setSlice(slide);
 
@@ -3542,7 +4396,7 @@ setSlice(slide);
 //-----------------------------------------
 
 
-	b1_x1= 440;
+	b1_x1= 440  + (xButtonShift/2);
 	b1_y1= 576;
 
 	b1_x2= b1_x1 + 598;
@@ -3553,7 +4407,7 @@ setSlice(slide);
 //-----------------------------------------
 
 
-	b2_x1= 440;
+	b2_x1= 440 + (xButtonShift/2);
 	b2_y1= 820;
 
 	b2_x2= b2_x1 + 598;
@@ -3563,22 +4417,29 @@ setSlice(slide);
 whileGate=0;
 
 while(whileGate==0){
-wait(100);
 
+
+	
 	setSlice(slide);
+	getCursorLoc(mouseX, mouseY, mouseZ, flag); Tool=0;
+	
+	
+		{
+		
+		
 
-	setTool("point");
 
-		if(selectionType!=-1){
-
-		Roi.getCoordinates(xpoints, ypoints);
-		clickX=xpoints[0];
-		clickY=ypoints[0];
+		clickX=mouseX; 
+		clickY=mouseY;
 
 		//Button 1
 		//-----------------
 		if( clickX > b1_x1   &&    clickX < b1_x2   &&   clickY > b1_y1 &&  clickY < b1_y2) {
-
+		
+		
+	
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
 		whileGate=1;
 		
 		datafileDIR = getDirectory("Select the Folder you wish to download your results to.");
@@ -3592,18 +4453,27 @@ wait(100);
 		}
 
 		}
-		
+		}
 		
 		//Button 2
 		//-----------------
 		if( clickX > b2_x1   &&    clickX < b2_x2   &&   clickY > b2_y1 &&  clickY < b2_y2) {
-
+		
+		Tool=1;
+		Tool=1;   if(flag&16!=0){wait (200);
 		whileGate=1;
 
 		}
-		
+		}
 		
 	run("Select None");
+	if(Tool != ToolOld){
+			if(Tool == 0)
+				setTool("arrow");
+			if(Tool  == 1)
+				setTool("hand");
+		ToolOld= Tool;
+}
 
 		}
 
@@ -3614,9 +4484,16 @@ wait(100);
 
 }
 
+if(isOpen("Loading")){
+selectImage("Loading");
+
+
+setBatchMode("Show");
+run("Maximize");
+setLocation(interfaceX, interfaceY, interfaceW, interfaceH);
+ run("Animation Options...", "speed="+6);
+doCommand("Start Animation");
 setBatchMode(false);
-if(isOpen("blank")){
-selectImage("blank");
 close("\\Others");
 } else{
 close("*");
