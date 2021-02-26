@@ -1,0 +1,212 @@
+/*____________________________________________________________________
+
+	Title: Phenotype Tester
+	Authors:  George Hancock 
+	Date: 27/01/2021
+	
+.................................................................................................................
+
+Description:
+''''''''''''''''''''''''''''''''
+Allows the user to test how different values influence the phenotype and also output a genome for the desired phenotype.
+
+*/
+
+
+randomCheck=0;
+
+
+close("*");
+
+setBatchMode(true);
+
+Target_Settings = File.openAsString(getDirectory("plugins") +"1 CamoEvo/Targets/Target_Settings.txt");
+Target_Rows=split(Target_Settings, "\n");
+targetChoices = newArray(Target_Rows.length-1);
+
+for(i=0;i<targetChoices.length;i++){
+
+tString = split(Target_Rows[i+1], "\t");
+tString = tString[0];
+targetChoices[i] = tString;
+
+}
+
+
+popLocation = getDirectory("plugins") + "2 CamoReq/PopLocation.txt";
+
+dataFile = File.open(popLocation);
+	print(dataFile,getDirectory("plugins") + "2 CamoReq/");
+File.close(dataFile);
+
+
+
+
+pttnChoices = newArray("Animal","Egg");
+
+Dialog.create("Shape");
+	Dialog.addMessage("__Choose Target Shape and Pattern__");
+		Dialog.addChoice("Target:", targetChoices);
+		Dialog.addChoice("Pattern:",  pttnChoices);
+Dialog.show();
+
+targetShape = Dialog.getChoice();
+targetString = newArray("Target=",targetShape);
+targetString = String.join(targetString, "\t");
+
+
+patternChoice  = Dialog.getChoice();
+
+popSetting = getDirectory("plugins") + "2 CamoReq/PopulationSettings.txt";
+
+dataFile = File.open(popSetting);
+	print(dataFile, targetString);
+File.close(dataFile);
+
+
+
+if(patternChoice == "Animal"){
+templateGenes = getDirectory("plugins") + "2 CamoReq/Gene_Template.txt";
+}
+
+if(patternChoice == "Egg"){
+templateGenes = getDirectory("plugins") + "2 CamoReq/Egg_Gene_Template.txt";
+}
+
+TemplateString=File.openAsString(templateGenes);	// open txt data file
+TemplateRows=split(TemplateString, "\n");
+Template_Array = split(TemplateRows[0], "\t");
+Gene_Array = split(TemplateRows[1], "\t");
+
+TLeng = lengthOf(Template_Array);
+TLeng = parseInt(TLeng);
+CLeng = TemplateRows.length-1;
+
+likeCheck =0;
+StandardVal = newArray(TLeng);
+StandardVal[0] = "Test";
+for(i=1;i<StandardVal.length;i++){
+StandardVal[i]=random();
+}
+
+
+importCheck=1;
+
+importCheck  = getBoolean("Do you want to import a genome", "No, random", "Yes");
+
+if(importCheck==0){
+importDIR = File.openDialog("Select the Folder you wish to download your genome to.");
+
+ImportString=File.openAsString(importDIR);	// open txt data file
+ImportRows=split(ImportString, "\n");
+Import_Array = split(ImportRows[1], "\t");
+
+Array.show(ImportRows);
+
+if(Import_Array.length ==StandardVal.length){
+
+for(j=0;j<Import_Array .length;j++){
+StandardVal[j]=(Import_Array[j]);
+
+}
+}else{
+
+exit("Error, genome incompatible with target.");
+
+}
+
+}
+
+
+while(likeCheck==0){
+
+for(z = 0; z< floor(TLeng/20)+1; z++){
+
+dialogTitle = "Part "+z+1;
+
+Dialog.createNonBlocking(dialogTitle);
+
+startVal = ((z)*20);
+endVal = startVal +20;
+if(endVal>TLeng){
+endVal = TLeng;
+}
+
+	Dialog.addMessage("Give each gene a decimal value between 0 and 1");
+	for(k=startVal; k<endVal ; k++)	{
+	Label = Template_Array[k];
+	Dialog.addString(Label, StandardVal[k]);
+					}
+	Dialog.show();
+
+	
+	for(k=startVal; k<endVal ; k++)	{
+	StandardVal[k] = Dialog.getString();
+	}
+
+
+}
+
+
+standardString = String.join(StandardVal, "\t");
+
+popGenes = getDirectory("plugins") + "2 CamoReq/PatternTemplate.txt";
+
+dataFile = File.open(popGenes);
+	print(dataFile,TemplateRows[0]);
+	print(dataFile,standardString);
+File.close(dataFile);
+
+setBatchMode(true);
+
+close("*");
+
+if(patternChoice == "Animal"){
+run("Generate Targets");
+} 
+
+if(patternChoice == "Egg"){
+run("Generate Eggs");
+} 
+
+
+setBatchMode("exit and display");
+run("Select None");
+
+randomCheck=0;
+
+
+
+
+
+likeCheck  = getBoolean("Are you happy with this pattern?", "Yes", "No, try again");
+
+
+randomCheck=0;
+if(likeCheck==0){
+randomCheck = getBoolean("Do you want to randomise?", "Yes", "No");
+if(randomCheck==1){
+StandardVal = newArray(TLeng);
+for(i=0;i<StandardVal.length;i++){
+StandardVal[i]=random();
+}
+}
+
+}
+
+}
+
+
+
+
+ShapeName = getString("Give a unique name for your phenotype", "Artifical");
+datafileDIR = getDirectory("Select the Folder you wish to download your genome to.");
+
+if(File.exists(popGenes)){
+
+File.copy(popGenes, datafileDIR + ShapeName + ".txt");
+
+}
+
+
+saveAs("PNG", datafileDIR + ShapeName + ".png");
